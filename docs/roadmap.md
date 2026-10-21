@@ -1,75 +1,83 @@
-# Lộ trình bài 3: Dự báo lùi bờ sông có độ bất định và thiên lệch nhãn điểm sạt lở, ĐBSCL
+# Lộ trình bài 3: Dự báo lùi bờ sông có độ bất định đã kiểm chứng, và độ nhạy theo nguồn nhãn sạt lở, ĐBSCL
 
-Lập ngày 21/10/2026. Kết quả từ hội đồng nghiên cứu (6 nhóm độc lập). Máy: chỉ có CPU i5-12500H, không có GPU rời. Tính toán dùng Google Earth Engine, Colab và Kaggle miễn phí.
+Lập ngày 21/10/2026, sửa cùng ngày theo báo cáo tính mới ([reports/Tính mới đề tài sạt lở.md](../reports/Tính%20mới%20đề%20tài%20sạt%20lở.md)). Máy: chỉ có CPU i5-12500H, không có GPU rời. Tính toán trên Google Earth Engine (project `mekong-bankline`, gói Community, đã đăng ký và kết nối Python).
 
-> Lưu ý trung thực: hướng này rất khả thi và có cơ hội Q1, nhưng **liên quan thấp tới PhD cognitive robotics** (1/5). Bạn đã chọn hướng này vì tác động cho ĐBSCL, và đó là một lựa chọn hợp lệ. Phần chuyển giao được sang robotics là: dự báo không gian–thời gian, độ bất định đã hiệu chỉnh (conformal), và tư duy kiểm định nhãn. Phần cuối có một nhánh mở rộng sang robotics.
+> Lưu ý trung thực: hướng này liên quan thấp tới PhD cognitive robotics (1/5). Phần chuyển giao được là dự báo không gian–thời gian, độ bất định đã hiệu chỉnh (conformal) và tư duy kiểm định nhãn. Mục 6 có một nhánh mở rộng sang robotics.
 
-## 1. Câu hỏi và ba đóng góp
+## 1. Câu hỏi và ba đóng góp (đã thu hẹp sau kiểm tra tính mới)
 
-**Tên tạm:** *Calibrated forecasting of riverbank retreat in the Vietnamese Mekong Delta, and how report-based hotspot labels bias erosion maps*
+**Tên tạm:** *Distribution-free, coverage-verified forecasts of riverbank retreat in the Vietnamese Mekong Delta, and the sensitivity of erosion-susceptibility evaluation to label source*
 
-1. **Bộ kiểm kê điểm sạt lở có tọa độ cho sông Tiền và sông Hậu, công bố mở.**
-   - Hiện chưa có danh sách chính thức nào gắn tọa độ. Cục Quản lý đê điều và PCTT chỉ công bố số tổng: 2023 có 585 điểm, dài 741 km, trong đó 87 điểm khẩn cấp ([SGGP](https://www.sggp.org.vn/dbscl-lai-nom-nop-lo-sat-lo-post684067.html)).
-   - Nguồn để dựng bộ kiểm kê:
-     - các quyết định công bố tình huống khẩn cấp của tỉnh, có địa chỉ cấp tổ/khóm/phường;
-     - bộ dữ liệu sạt lở Đồng Tháp 2016–2019 trên Open Development Mekong, tải được dạng SHP/GeoJSON ([ODM](https://data.opendevelopmentmekong.net/lo/dataset/impacts-of-mekong-river-erosion-in-dong-thap-province));
-     - WebGIS của Bộ NN&PTNT năm 2020 với 564 điểm, nếu tải được (UNVERIFIED).
-   - Ghi kèm sai số vị trí cho từng điểm, ước khoảng 100–500 m.
-   - Bạn đọc được văn bản tiếng Việt, đây là lợi thế mà nhóm nước ngoài không có.
-2. **Dự báo lùi bờ 1–3 năm theo từng mặt cắt ngang (transect), có khoảng tin cậy đã hiệu chỉnh** bằng split conformal, đánh giá theo từng đoạn sông.
-   - Bài dự báo gần nhất ở ĐBSCL là ngoại suy tuyến tính DSAS tại Sa Đéc/Hồng Ngự từ năm 2010, một con số cố định, không có độ bất định và không kiểm chứng ([ISPRS 2010](https://www.isprs.org/proceedings/XXXVIII/part8/pdf/W01OH3_20100308201836.pdf)).
-   - Hội đồng không tìm thấy dự báo xác suất, cũng không thấy ai áp dụng conformal cho đường bờ hay bờ sông.
-3. **Kiểm tra thiên lệch nhãn.**
-   - Các bản đồ nguy cơ hiện nay kiểm chứng bằng điểm sạt lở được báo cáo (ví dụ [Binh et al. 2024](https://js.vnu.edu.vn/EES/article/view/5234), AUC 0,86).
-   - Điểm được báo cáo thường nằm gần khu dân cư và đường sá. Bài sẽ đo xem điều đó thổi phồng AUC bao nhiêu so với nhãn lùi bờ đo từ vệ tinh.
-   - Đây là chuyển phương pháp của văn liệu về thiên lệch kiểm kê trượt lở sang bờ sông, hội đồng chưa thấy ai làm. Nền tảng: [Steger et al. 2017](https://link.springer.com/article/10.1007/s10346-017-0820-0), [Steger et al. 2016](https://nhess.copernicus.org/articles/16/2729/2016/), [Stanley & Kirschbaum 2017](https://ntrs.nasa.gov/api/citations/20170007214/downloads/20170007214.pdf).
-
-**Trực quan hóa:** một bản đồ web (GEE App, hoặc Leaflet đặt trên GitHub Pages) hiển thị dự báo kèm dải bất định cho từng transect và từng điểm sạt lở. Phần này chiếm khoảng 10% công sức. Nó tăng giá trị tái lập và phù hợp với tạp chí Environmental Modelling & Software, nhưng **một mình nó không đủ làm đóng góp Q1**.
+1. **Dự báo lùi bờ 1–3 năm theo transect, có khoảng tin cậy conformal được kiểm chứng độ phủ** theo từng đoạn sông và khi điều kiện thay đổi. Đây là đóng góp chính.
+   - Còn trống trong phạm vi đã tìm: chưa thấy conformal cho bờ sông, bờ biển hay dịch chuyển lòng sông; chưa thấy ai đo độ phủ thực tế của các sản phẩm xác suất hiện có.
+   - Chỉ được nhận "đầu tiên" về miền ứng dụng. Phải định vị so với Auer et al. 2024 (HESS, conformal cho lưu lượng, độ phủ theo lưu vực và khi phân phối thay đổi), GeoConformal (Lou et al. 2025), Singh et al. 2024 và CPTC 2025.
+   - Không được viết "chưa có dự báo xác suất": CEGIS Bangladesh dự báo theo xác suất 30/50/70% từ 2004; Noh et al. 2024 (ESurf) có bản đồ rủi ro Bayesian; CoSMoS-COAST có dải dự báo. Điểm khác của bài: các sản phẩm đó chưa ai kiểm tra độ phủ.
+   - Ở ĐBSCL, các dự báo trước đều tất định: ISPRS 2010 và bản journal 2011 (hồi quy tuyến tính trên transect DSAS), và mô phỏng TELEMAC của SIWRR 2024.
+2. **Độ nhạy của việc đánh giá bản đồ nguy cơ theo nguồn nhãn:** cùng một mô hình, chấm bằng danh sách điểm báo cáo chính thức và bằng nhãn lùi bờ đo từ vệ tinh, rồi biểu diễn mức chênh AUC theo khoảng cách tới khu dân cư và đường sá.
+   - Khái niệm đã có ở trượt lở và mô hình phân bố loài (Steger et al. 2017, 2021; Stanley & Kirschbaum 2017; Bornaetxea et al. 2023; Phillips et al. 2009; Hijmans 2012). Phần mới là phép so sánh cặp đầu tiên cho bờ sông.
+   - Viết là "label-source sensitivity", không viết "nhãn báo cáo sai". Nhãn vệ tinh cũng có thiên lệch riêng.
+   - Đối thủ cùng vùng: Nguyen et al. 2025 (*Physical Geography*, nhãn từ Landsat, GB AUC 0,85); Bui et al. 2026 (255 điểm đã ghi nhận); Binh et al. 2024 (sông Hàm Luông).
+3. **Bộ kiểm kê điểm sạt lở cấp điểm, công khai, tải được** cho sông Tiền và sông Hậu ở An Giang và Đồng Tháp (theo địa giới trước 2025), có định nghĩa đơn vị nhất quán, ngày theo năm, nguồn gốc và sai số vị trí cho từng điểm.
+   - Đã có các tập không công khai: WebGIS của Tổng cục PCTT ra mắt 6/2018 (562 điểm, máy chủ không phản hồi ngày 21/10/2026), 255 điểm của Bui et al. 2026, 248 vị trí của Bui & Tran 2023.
+   - Số liệu chính thức trộn "điểm", "đoạn" và "vụ", trộn sông chính với kênh rạch. Ví dụ 585 điểm, 741 km "tính đến 2022", trong đó 87 điểm "đặc biệt nguy hiểm" ([VnExpress 15/8/2023](https://vnexpress.net/dong-mekong-gian-du-4634044.html)).
 
 **Giả thuyết:**
-- **H1:** Mô hình có biến phụ trợ cho sai số lùi bờ thấp hơn ngoại suy tuyến tính (EPR/LR) ở tầm 1–3 năm, *hoặc* không thấp hơn. Kết quả nào cũng là một phát hiện, vì ở bài toán bờ biển, mô hình đơn giản từng thắng ML ([ShoreShop, Mao et al. 2025](https://pubs.usgs.gov/publication/70270366)).
-- **H2:** Conformal giữ độ phủ 90% ± 3 điểm phần trăm khi tách theo đoạn sông, còn khoảng tin cậy Gauss thì phủ thiếu.
-- **H3:** Nhãn dựa trên báo cáo làm AUC của mô hình nguy cơ cao hơn đáng kể so với nhãn đo từ vệ tinh, và mức chênh tăng theo độ gần khu dân cư và đường sá.
+- **H1:** Mô hình có biến phụ trợ cho sai số thấp hơn ngoại suy tuyến tính (EPR/LRR) ở tầm dự báo đã chọn, *hoặc* không thấp hơn. Kết quả nào cũng báo cáo.
+- **H2:** Conformal giữ độ phủ 90% ± 3 điểm phần trăm khi gộp; khi tách theo đoạn sông và qua các giai đoạn thay đổi đã ghi nhận (Vàm Nao sau 2012, đào sâu đáy gần Mỹ Thuận 2014–2017), độ phủ của split conformal có thể hụt, còn bản Mondrian hoặc ACI thì giữ được. Khoảng Gauss phủ thiếu.
+- **H3:** Mức chênh AUC giữa hai nguồn nhãn lớn hơn mức do gom cụm không gian gây ra (kiểm bằng cAUC và CV theo khối), và tăng theo độ gần khu dân cư và đường sá, sau khi đã kiểm tra hiệu ứng vật lý thật.
 
-## 2. Dữ liệu và công cụ (tất cả miễn phí, chạy được trên CPU)
+**Không nằm trong phạm vi:** xác định nguyên nhân sạt lở. Bài chỉ phân tích các yếu tố liên quan trong phần thảo luận. Tác động của kè để cho bài sau.
+
+## 2. Dữ liệu (tất cả miễn phí)
 
 | Thành phần | Nguồn | Ghi chú |
 |---|---|---|
-| Ảnh vệ tinh và mặt nước | Landsat 5/7/8/9 (2000–2024) và Sentinel-2 (2016–2024), ghép ảnh mùa khô hằng năm trên GEE; JRC Global Surface Water | Dùng mùa khô để giảm ảnh hưởng của mực nước |
-| Quota GEE | Gói Community: 150 EECU-giờ/tháng, cấp cho dự án phi thương mại, dành cả cho sinh viên. Vượt quota thì bị chạy chậm chứ không bị cắt. Phải xác minh lại hằng năm ([Google](https://developers.google.com/earth-engine/guides/noncommercial_tiers)) | Xuất dữ liệu sớm |
-| Dữ liệu lùi bờ toàn cầu để đối chiếu | REAL ([ESSD 2025](https://essd.copernicus.org/articles/17/5615/2025/)) | Chỉ có trung bình theo thập kỷ, sông rộng trên 150 m |
-| Biến phụ trợ | Lưu lượng Tân Châu (cổng dữ liệu MRC, điều kiện truy cập UNVERIFIED), độ cong lòng sông, bề rộng, tốc độ lùi bờ quá khứ, OSM roads, WorldPop | Dữ liệu khai thác cát không có công khai; ghi thành hạn chế của bài |
-| Mô hình | EPR/LR theo transect, Gaussian Process, Gradient Boosting (CPU); ConvLSTM nhỏ (Colab, tùy chọn); conformal bằng MAPIE | Không cần GPU cho phần lõi |
+| Mặt nạ nước, đường bờ | Landsat 5/7/8/9 C2 L2 (2000–2024), Sentinel-2 SR (2017–2024), ghép mùa khô tháng 1–4 trên GEE | JRC GSW v1.4 chỉ tới 2021, chỉ dùng để đối chiếu |
+| Ảnh nét để kiểm sai số | Esri World Imagery Wayback, Google Earth Pro | NICFI đã kết thúc 23/1/2025 |
+| Nhãn báo cáo | Quyết định công bố tình huống khẩn cấp (cổng tỉnh, thuvienphapluat), báo chí, CSV 55 vị trí trên ODM (địa chỉ dạng văn bản) | Bộ ODM Đồng Tháp 2016–2019 chỉ có số tổng theo xã |
+| Mực nước | MRC, trạm Tân Châu 019803: đo thủ công 1979 tới nay, telemetry 15 phút từ 2010 | MRC không có lưu lượng của Tân Châu. Chưa gửi yêu cầu; chỉ cần ở bước kiểm tra mùa khô |
+| Lưu lượng (tùy chọn) | Tân Châu theo giờ 2005–2015 (data.gov.uk), theo tháng 1995–2016 (GFZ) | Không phủ tới 2024 |
+| Dân cư, đường sá | OSM, WorldPop, GHSL | |
+| Lùi bờ toàn cầu để đối chiếu | Langhorst & Pavelsky 2023, JGR Earth Surface, doi:10.1029/2022JF006774 (Zenodo 10.5281/zenodo.7045021) | Một tốc độ trung bình 2001→2019 cho mỗi đoạn sông, không có chuỗi theo năm |
+| Mô hình | EPR/LRR, Gradient Boosting, Gaussian Process; conformal bằng MAPIE | Không cần GPU |
 
-## 3. Lộ trình (20 giờ/tuần, bắt đầu thứ Hai 26/10/2026)
+## 3. Lộ trình (bắt đầu thứ Hai 26/10/2026)
 
-| Giai đoạn | Thời gian | Giờ | Việc | Cổng kiểm tra |
+Cột "Giờ của bạn" là ước lượng thô sau khi đã tự động hóa phần lặp lại. Máy chạy các bước xử lý ảnh, mô hình, hình và bảng.
+
+| Giai đoạn | Thời gian | Giờ của bạn | Việc | Cổng kiểm tra |
 |---|---|---|---|---|
-| P0 Thử nghiệm | 26/10–8/11 | 40 | Đăng ký GEE phi thương mại. Tìm sâu tính mới trên Google Scholar và tạp chí Việt Nam (Khoa học Thủy lợi, ĐH Cần Thơ, vnjhm). Chạy thử đoạn Sa Đéc–Cao Lãnh: mặt nạ nước 2000–2024, trích đường bờ, transect cách nhau 100 m. Gắn tọa độ thử 20 điểm sạt lở. | Lùi bờ nhìn thấy rõ ở độ phân giải 30 m; 20 điểm có sai số ≤ 500 m; chưa có ai làm dự báo hiệu chỉnh |
-| P1 Dữ liệu | 9/11–6/12 | 80 | Toàn tuyến sông Tiền và sông Hậu; bộ kiểm kê 100 điểm trở lên; biến phụ trợ. **Đóng băng protocol** (git tag) trước khi chạy dự báo | Protocol đã commit |
-| P2 Mô hình | 7/12–3/1 | 80 | Huấn luyện tới 2018, dự báo 2019–2024; kiểm chứng chéo theo khối không gian; conformal; kiểm tra thiên lệch nhãn | Kết quả H1–H3 có khoảng tin cậy bootstrap |
-| P3 Độ bền và bản đồ | 4/1–17/1 | 40 | Kiểm tra lại bằng Sentinel-2 10 m; độ nhạy theo sai số tọa độ; dựng bản đồ web | Kết luận không đổi |
-| P4 Viết bài | 18/1–21/2 | 70 | Bản thảo (trừ hao Tết); nộp khoảng cuối tháng 2/2027 | Giảng viên đã duyệt |
+| **P0 Thử nghiệm** | 26/10–8/11 | ~10 | Lấy toàn văn Nguyen et al. 2025 qua thư viện UEH; chạy các truy vấn Google Scholar và quét danh sách cited-by của Steger 2017/2021 và Phillips 2009. Chạy thử đoạn Sa Đéc–Cao Lãnh: mặt nạ nước, đường bờ, transect 100 m. Đo sai số đường bờ bằng ảnh nét và các đoạn có kè. So dự báo 2020 của ISPRS 2010 với thực tế (hình mở đầu). Đếm điểm báo cáo trên sông chính ở An Giang và Đồng Tháp. | **G1:** Nguyen 2025 chưa so sánh hai nguồn nhãn (nếu đã có, bỏ H3, bài còn H1+H2). **G2:** chọn tầm dự báo theo sai số đo (1 năm nếu sai số nhỏ hơn mức lùi ở phần lớn transect, nếu không thì 3–5 năm; nếu cả 3–5 năm cũng không thấy tín hiệu thì dừng). **G3:** có ít nhất 50 điểm báo cáo, nếu thiếu thì mở rộng tỉnh. |
+| **P1 Dữ liệu** | 9/11–6/12 | ~15 | Đường bờ toàn tuyến sông Tiền và sông Hậu; nhãn vệ tinh; bộ kiểm kê bán tự động (máy tìm, đọc và định vị; bạn duyệt từng điểm); biến phụ trợ. **Đóng băng protocol** (git tag) trước khi chạy dự báo: tầm dự báo, cách chia, các phép kiểm, ngưỡng. | Protocol đã commit và tag |
+| **P2 Mô hình** | 7/12–3/1 | ~5 | Huấn luyện tới 2018, dự báo 2019–2024; CV theo khối không gian; conformal (split, CQR, Mondrian theo đoạn, ACI); H3 với cAUC, chia theo khoảng cách, kiểm tra hiệu ứng vật lý. | Kết quả H1–H3 có khoảng tin cậy bootstrap theo khối |
+| **P3 Độ bền** | 4/1–17/1 | ~3 | Kiểm lại bằng Sentinel-2 10 m; độ nhạy theo sai số tọa độ (100–500 m, theo Steger 2016); công bố bộ kiểm kê và code lên Zenodo. | Kết luận không đổi |
+| **P4 Viết bài** | 18/1–21/2 | ~30 | Tôi viết bản nháp, bạn sửa, kiểm từng con số và quyết định cách khai báo dùng AI. Gửi giảng viên. Đăng EarthArXiv khi nộp. Nộp khoảng cuối tháng 2/2027 (trừ hao Tết). | Giảng viên đã duyệt |
 
-**Tạp chí** (SJR 2025, lấy từ đoạn trích kết quả tìm kiếm; cần xác minh trên trình duyệt):
-- **Chính:** Environmental Modelling & Software. SJR 1,344, Q1 ở 4 ngành, trong đó có **Computer Science: Software**. Có đường đăng miễn phí, hợp với phần bản đồ web.
-- **Dự phòng 1:** Computers & Geosciences. SJR 1,033, Q1 Computers in Earth Sciences, đăng miễn phí.
-- **Dự phòng 2:** IJAEOG, phù hợp nhất về chuyên môn. SJR 2,177, phản hồi đầu khoảng 3 ngày, khoảng 130 ngày tới chấp nhận, tỉ lệ nhận 14%. Nhưng là tạp chí open access, phải trả phí.
-- **Tránh:** Ecological Informatics (thiên về sinh thái) và EAAI (chỉ nhận khi phương pháp thật sự mới).
+**Tạp chí** (SJR 2025, đều Q1; giá lấy từ danh sách APC của Elsevier ngày 5/10/2026):
+- **Chính: NHESS** (SJR 1,418). Hợp nhất với câu chuyện độ phủ và nguồn nhãn của bản đồ nguy cơ. Phí 1.800 €, được miễn nếu Việt Nam thuộc Research4Life; phải xác nhận trên research4life.org trước khi nộp.
+- **Dự phòng 1: Geomorphology** (SJR 1,003). Đăng miễn phí theo đường subscription.
+- **Dự phòng 2: IJAEOG** (SJR 2,177). Chỉ có open access, 3.670 USD.
+- **Tránh:** Environmental Modelling & Software (dễ bị từ chối ngay nếu là bài ứng dụng không có đóng góp phần mềm), Remote Sensing of Environment (cần tiến bộ về phương pháp viễn thám).
 
 ## 4. Rủi ro và phương án
 
-1. **Nhiều vụ sạt nhỏ hơn một pixel 30 m.** Dự báo nhắm vào lùi bờ dài hạn; dùng Sentinel-2 10 m cho giai đoạn 2016–2024; nói rõ giới hạn trong bài.
-2. **Gắn tọa độ khó, địa giới bị đổi do sáp nhập 2025.** Ghi sai số cho từng điểm, và dùng chính sai số đó trong phân tích độ nhạy.
-3. **Mô hình học sâu không thắng ngoại suy tuyến tính.** Báo cáo thẳng như một phát hiện, vì đóng góp chính là độ bất định đã hiệu chỉnh.
-4. **Đường mép nước lệch theo mực nước.** Dùng ảnh ghép mùa khô và đối chiếu với lưu lượng.
-5. **Có người công bố trước** (tính mới mới kiểm qua tìm kiếm sơ bộ). Cổng kiểm tra ở P0; đăng arXiv hoặc EarthArXiv khi nộp bài.
+1. **Nhiều vụ sạt nhỏ hơn một pixel 30 m.** Cổng G2 quyết định tầm dự báo; dùng Sentinel-2 10 m cho 2017–2024; nói rõ giới hạn.
+2. **H3 bị xem là đánh vào hình nộm** (đối thủ cùng vùng đã dùng nhãn vệ tinh). Ghi lại sản phẩm nào của Bộ, Tổng cục PCTT, SIWRR hay tỉnh thực sự dùng danh sách báo cáo; trình bày là độ nhạy theo nguồn nhãn.
+3. **Gần khu dân cư thật sự lở nhiều hơn** (tải trọng nhà, sóng tàu). Kiểm tra lùi bờ đo từ vệ tinh theo khoảng cách tới khu dân cư trước khi diễn giải mức chênh AUC.
+4. **Gắn tọa độ khó, địa giới đổi do sáp nhập 2025.** Dựng bảng đối chiếu xã cũ và xã mới; ghi sai số cho từng điểm và dùng trong phân tích độ nhạy.
+5. **Mô hình có biến phụ trợ không thắng ngoại suy tuyến tính.** Báo cáo thẳng, vì đóng góp chính là độ phủ đã kiểm chứng.
+6. **Có người công bố trước.** Cổng G1 ở P0; đăng EarthArXiv khi nộp. Theo dõi nhóm Bui/Tran (ĐH Mỏ–Địa chất) và nhóm Nguyen (ĐH KHTN Hà Nội, có đồng tác giả ở Đài KTTV An Giang).
 
-## 5. Nhánh mở rộng sang robotics (để kể cho hồ sơ PhD)
-Có thể làm thêm một phần, hoặc thành bài sau: dùng độ bất định của dự báo để quyết định nên khảo sát UAV/USV ở đâu với ngân sách có hạn (active sensing / lấy mẫu theo thông tin). Phần này mô phỏng trên chính dữ liệu vệ tinh của bài, nối được câu chuyện "nhận thức có độ bất định dẫn tới hành động".
+## 5. Phân công
 
-## 6. Lịch gửi giảng viên
-- **~8/11:** kết quả cổng P0 và 1 trang mô tả hướng đi.
+- **Bạn:** quyết định ở các cổng G1–G3 và khi đóng băng protocol; duyệt từng điểm của bộ kiểm kê; kiểm sai số đường bờ bằng mắt trên trang so sánh; sửa và chịu trách nhiệm bản thảo; liên lạc giảng viên.
+- **Tự động (Claude và script):** xử lý ảnh trên GEE, transect, nhãn vệ tinh, tìm và trích văn bản cho bộ kiểm kê, mô hình, conformal, H3, bootstrap, hình, bảng, bản nháp.
+
+## 6. Nhánh mở rộng sang robotics (để kể cho hồ sơ PhD)
+Dùng độ bất định của dự báo để quyết định nên cho UAV hoặc USV khảo sát ở đâu với ngân sách có hạn (active sensing). Mô phỏng trên chính dữ liệu vệ tinh của bài. Để cho bài sau.
+
+## 7. Lịch gửi giảng viên
+- **~8/11:** kết quả các cổng G1–G3 và 1 trang mô tả hướng đi.
 - **~3/1:** kết quả H1–H3.
 - **~14/2:** bản thảo.
 

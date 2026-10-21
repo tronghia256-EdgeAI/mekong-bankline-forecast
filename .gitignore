@@ -9,3 +9,7 @@ __pycache__/
 .ipynb_checkpoints/
 .venv/
 .env
+
+# Papers and PDFs (copyrighted, never pushed)
+papers/
+*.pdf
