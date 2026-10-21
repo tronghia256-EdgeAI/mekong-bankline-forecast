@@ -1,0 +1,11 @@
+# GEE exports and derived rasters stay out of git (re-creatable)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+*.tif
+# Python / notebooks
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+.env
