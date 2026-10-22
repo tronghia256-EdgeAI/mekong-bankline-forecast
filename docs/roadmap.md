@@ -66,7 +66,8 @@ Cột "Giờ của bạn" là ước lượng thô sau khi đã tự động hó
 3. **Gần khu dân cư thật sự lở nhiều hơn** (tải trọng nhà, sóng tàu). Kiểm tra lùi bờ đo từ vệ tinh theo khoảng cách tới khu dân cư trước khi diễn giải mức chênh AUC.
 4. **Gắn tọa độ khó, địa giới đổi do sáp nhập 2025.** Dựng bảng đối chiếu xã cũ và xã mới; ghi sai số cho từng điểm và dùng trong phân tích độ nhạy.
 5. **Mô hình có biến phụ trợ không thắng ngoại suy tuyến tính.** Báo cáo thẳng, vì đóng góp chính là độ phủ đã kiểm chứng.
-6. **Có người công bố trước.** Cổng G1 ở P0; đăng EarthArXiv khi nộp. Theo dõi nhóm Bui/Tran (ĐH Mỏ–Địa chất) và nhóm Nguyen (ĐH KHTN Hà Nội, có đồng tác giả ở Đài KTTV An Giang).
+6. **Bờ nhiều mép** (dải đất có ao hoặc đầm phía sau, cồn sát bờ): khoảng 9% điểm kiểm (4/45) lệch tới khoảng 110 m. Đã thử quy tắc "đất liền đầu tiên tính từ lòng sông" (P0, 22/10): sửa được 2/4 điểm nhưng làm hỏng điểm khác và lệch khỏi số liệu SIWRR (2006–2014: −24 so với −41,5 ha), nên giữ quy tắc cũ; các transect nhảy chế độ được đánh dấu và loại. Xử lý lại ở P1 khi có thêm mẫu.
+7. **Có người công bố trước.** Cổng G1 ở P0; đăng EarthArXiv khi nộp. Theo dõi nhóm Bui/Tran (ĐH Mỏ–Địa chất) và nhóm Nguyen (ĐH KHTN Hà Nội, có đồng tác giả ở Đài KTTV An Giang).
 
 ## 5. Phân công
 
@@ -76,10 +77,8 @@ Cột "Giờ của bạn" là ước lượng thô sau khi đã tự động hó
 ## 6. Nhánh mở rộng sang robotics (để kể cho hồ sơ PhD)
 Dùng độ bất định của dự báo để quyết định nên cho UAV hoặc USV khảo sát ở đâu với ngân sách có hạn (active sensing). Mô phỏng trên chính dữ liệu vệ tinh của bài. Để cho bài sau.
 
-## 7. Lịch gửi giảng viên
-- **~8/11:** kết quả các cổng G1–G3 và 1 trang mô tả hướng đi.
-- **~3/1:** kết quả H1–H3.
-- **~14/2:** bản thảo.
+## 7. Gửi giảng viên
+Chỉ gửi kết quả cuối (bản thảo), không gửi báo cáo giữa chừng.
 
 ## Liên quan tới các bài khác
 - **Bài seed bias (PRL):** gói nộp gần xong. Còn sửa số trong abstract (0,040 so với 0,041), quyết định khai báo dùng AI theo chính sách Elsevier, và thầy ký form. Làm trong phiên CAAP.
