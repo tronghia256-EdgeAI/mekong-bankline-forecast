@@ -72,10 +72,10 @@ Còn ghi nhận: 3 điểm nhiều mép ở Sa Đéc (T303R, T326L, T410R) lệc
 
 **Trạng thái P1 (22/10):**
 - Phạm vi (chủ đề tài chọn): sông Tiền từ biên giới tới cầu Mỹ Thuận, sông Hậu từ biên giới tới cầu Cần Thơ. Đường tâm thô từ JRC (đường đi rẻ nhất qua lòng sông rộng), 15 ô 30 km chồng nhau (`src/river_tiles.py`, `data/tiles.json`); trong mỗi ô, phần gần sông kia hơn bị bỏ (tách hai sông ở Vàm Nao). Thuật toán P0 giữ nguyên (đầu ra Mỹ Thuận trùng từng byte).
-- Ghép (`src/stitch.py`): sông Tiền 1.191 transect trên 131 km (86% tuyến tính), sông Hậu 1.086 transect từ Châu Đốc (km 37) tới Cần Thơ (95% tuyến tính). Bờ trái/phải theo hướng xuôi dòng.
+- Ghép (`src/stitch.py`), chỉ phần thuộc Việt Nam (ranh giới LSIB 2017: sông Tiền vào Việt Nam ở km 4,6, sông Hậu ở km 8,5): sông Tiền 1.141 transect trên 127 km (85% tuyến tính), sông Hậu 1.360 transect trên 146 km (95% tuyến tính). Bờ trái/phải theo hướng xuôi dòng.
 - Kiểm chéo với P0 (`results/p1/tile_check.md`): lệch vị trí trung vị 0,9–5,7 m, lệch tốc độ 0,05–0,23 m/năm; RMSE so với điểm bấm 34 / 22 / 12 m (P0: 37 / 25 / 12 m).
-- **Chưa đo được: sông Hậu biên giới → Châu Đốc (~35 km)**, lòng sông rộng trung vị 180–210 m (6–7 pixel), bị bộ lọc kênh (< ~150 m) cắt đứt. Đoạn này có ~20 điểm báo cáo (An Phú). Chờ chủ đề tài quyết.
-- Trước khi đóng băng protocol: cắt phần đầu tuyến nằm bên Campuchia (1–3 km); quyết quy ước cù lao; quyết đoạn Hậu trên Châu Đốc.
+- Sông Hậu biên giới → Châu Đốc (rộng trung vị 180–210 m, ~20 điểm báo cáo ở An Phú): chủ đề tài chọn **chế độ sông hẹp** (22/10) cho các ô thượng nguồn Châu Đốc (`narrow_until_m`): lọc kênh ~90 m thay vì ~150 m, không dùng lõi sông mở, làm trơn đường tâm 15 px, chỉ xét nước trong 1 km quanh đường tâm thô. Trên đoạn chồng dưới Châu Đốc, chế độ hẹp so với chế độ thường: lệch trung vị 0,0 m, |lệch| trung vị 3,7 m, 90% ≤ 15 m. Chờ 15 điểm bấm tay (`data/processed/hau`).
+- Trước khi đóng băng protocol: quyết quy ước cù lao; sai số đoạn sông hẹp từ điểm bấm. (Đã cắt phần đầu tuyến bên Campuchia.)
 - Hình bài báo (`src/figures.py` → `figures/`, PNG 300 dpi + SVG): vùng nghiên cứu, ví dụ phương pháp, tốc độ thay đổi bờ toàn tuyến, kiểm định.
 
 **Tạp chí** (SJR 2025, đều Q1; giá lấy từ danh sách APC của Elsevier ngày 5/10/2026):

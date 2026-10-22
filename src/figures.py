@@ -146,7 +146,7 @@ def study_area():
         if lab:
             ax.text(*lab, fontsize=7, color=INK2, style='italic', ha='center')
     for river, col in (('tien', ORANGE), ('hau', BLUE)):
-        xy = np.array(tiles['centerlines'][river])
+        xy = np.array(tiles['centerlines'][river])[int(tiles['border_m'][river] / 100):]   # 100 m vertices, from the border
         lon, lat = transform('EPSG:32648', 'EPSG:4326', xy[:, 0], xy[:, 1])
         ax.plot(lon, lat, color=col, lw=1.6, solid_capstyle='round',
                 label=f'{"Tien" if river == "tien" else "Hau"} River, analysed reach ({xy.shape[0] * .1:.0f} km)')
@@ -300,6 +300,7 @@ def change():
     ax = fig.add_subplot(gs[:, 0])
     ax.imshow(np.clip(occ, 40, 100), cmap=WATER, vmin=40, vmax=100, extent=ext, interpolation='bilinear')
     lim = 10
+    border = json.loads(pathlib.Path('data/tiles.json').read_text())['border_m']
     for k, river in enumerate(('tien', 'hau')):
         tr = pd.read_csv(f'data/processed/{river}/trends.csv')
         bp = pd.read_csv(f'data/processed/{river}/bank_positions.csv')
@@ -313,9 +314,9 @@ def change():
         pa = fig.add_subplot(gs[k, 1])
         for side, col, name in (('L', BLUE, 'left bank'), ('R', ORANGE, 'right bank')):
             g = ok[ok.side == side]
-            pa.plot(g.chainage_m / 1e3, g.lrr, 'o', ms=1.6, mfc=col, mec='none', label=name)
+            pa.plot((g.chainage_m - border[river]) / 1e3, g.lrr, 'o', ms=1.6, mfc=col, mec='none', label=name)
         pa.axhline(0, color=INK2, lw=.6)
-        pa.set_xlim(0, 160)
+        pa.set_xlim(0, 150)
         pa.set_ylim(-15, 22)
         pa.set_ylabel('Rate (m/yr)')
         chart_axes(pa)
@@ -325,7 +326,7 @@ def change():
         if k == 0:
             pa.legend(loc='upper right', markerscale=3, handletextpad=.1, ncol=2)
         else:
-            pa.set_xlabel('Distance from the Cambodian border (km)')
+            pa.set_xlabel('Distance downstream of the border (km)')
     ax.set_xlim(104.98, 106.0)
     ax.set_ylim(9.97, 10.98)
     ax.set_aspect(1 / np.cos(np.radians(LAT0)))

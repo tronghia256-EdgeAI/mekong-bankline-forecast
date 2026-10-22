@@ -45,6 +45,7 @@ MAX_NODATA = 0.02                           # drop composites with more missing 
 MIN_YEARS = 15
 EIGHT = np.ones((3, 3), bool)
 TILES = pathlib.Path('data/tiles.json')        # P1 tiles of the full rivers (river_tiles.py)
+NARROW_CORRIDOR = 1000.0                    # narrow tiles: only water this near the coarse centerline (no long canals)
 
 
 def largest(mask):
@@ -129,15 +130,23 @@ def read(f):
     return np.clip(a, -1, 1), tf
 
 
-def own_river(reach, shape, tf):
-    """For a P1 tile, pixels nearer its own river's coarse centerline than the other river's; else all pixels."""
+def tile(reach):
+    """(tiles.json, this reach's tile entry or None)."""
     cfg = json.loads(TILES.read_text()) if TILES.exists() else {'tiles': {}}
-    if reach not in cfg['tiles']:
+    return cfg, cfg['tiles'].get(reach)
+
+
+def own_river(reach, shape, tf):
+    """For a P1 tile, pixels nearer its own river's coarse centerline than the other river's (and, in a narrow
+    tile, within NARROW_CORRIDOR of it); else all pixels."""
+    cfg, t = tile(reach)
+    if t is None:
         return np.ones(shape, bool)
     xy = to_xy(np.argwhere(np.ones(shape, bool)).astype(float), tf)
     d = {r: cKDTree(line).query(xy)[0].reshape(shape) for r, line in cfg['centerlines'].items()}
-    own = cfg['tiles'][reach]['river']
-    return np.all([d[own] < v for r, v in d.items() if r != own], axis=0)
+    own = t['river']
+    inside = np.all([d[own] < v for r, v in d.items() if r != own], axis=0)
+    return inside & (d[own] <= NARROW_CORRIDOR) if t.get('narrow') else inside
 
 
 def load(reach):
@@ -155,19 +164,22 @@ def load(reach):
     return years[keep], stack[keep], tf
 
 
-def geometry(stack, tf):
+def geometry(stack, tf, narrow=False):
     """Smoothed centerline and transect-sides (with the fixed open-river and belt masks sampled on them).
-    Each side: (transect, side, cx, cy, nx, ny, r, c, ri, ci, k0, belt_d)."""
+    Each side: (transect, side, cx, cy, nx, ny, r, c, ri, ci, k0, belt_d).
+    narrow: a ~200 m wide channel (Hau above Chau Doc) - canal filter ~90 m instead of ~150 m, no open-river core,
+    belt opened by 1 px instead of 4, centerline smoothed over 15 px instead of SMOOTH_PX (tight bends)."""
+    open_px, belt_px, smooth = (1, 1, 15) if narrow else (2, 4, SMOOTH_PX)
     thr = [threshold_otsu(m[np.isfinite(m)]) for m in stack]
     # close 1-2 px gaps (bridges), then drop water narrower than ~150 m (canals) before picking the main body
-    main_ch = np.array([largest(binary_opening(binary_closing(np.nan_to_num(m, nan=-1) > t, disk(1)), disk(2)))
+    main_ch = np.array([largest(binary_opening(binary_closing(np.nan_to_num(m, nan=-1) > t, disk(1)), disk(open_px)))
                         for m, t in zip(stack, thr)])
     river = largest(main_ch.mean(0) >= 0.5)                                  # river water in >= half the years
-    core = largest(binary_opening(river, disk(CORE_PX)))                     # open river, fixed for all years
-    belt = largest(binary_opening(ndimage.binary_fill_holes(river), disk(4)))
+    core = river if narrow else largest(binary_opening(river, disk(CORE_PX)))   # open river, fixed for all years
+    belt = largest(binary_opening(ndimage.binary_fill_holes(river), disk(belt_px)))
     xy = to_xy(longest_path(skeletonize(belt)), tf)
-    k = np.ones(SMOOTH_PX) / SMOOTH_PX
-    xy = np.column_stack([np.convolve(np.pad(xy[:, i], SMOOTH_PX // 2, mode='edge'), k, 'valid') for i in (0, 1)])
+    k = np.ones(smooth) / smooth
+    xy = np.column_stack([np.convolve(np.pad(xy[:, i], smooth // 2, mode='edge'), k, 'valid') for i in (0, 1)])
     seg = np.r_[0, np.cumsum(np.hypot(*np.diff(xy, axis=0).T))]
     st = np.arange(SPACING, seg[-1] - SPACING, SPACING)
     cx, cy = np.interp(st, seg, xy[:, 0]), np.interp(st, seg, xy[:, 1])
@@ -223,7 +235,7 @@ def main():
     reach = sys.argv[1]
     years, stack, tf = load(reach)
     thr = np.array([threshold_otsu(m[np.isfinite(m)]) for m in stack])
-    xy, sides = geometry(stack, tf)
+    xy, sides = geometry(stack, tf, narrow=bool((tile(reach)[1] or {}).get('narrow')))
     pos = pd.concat({y: positions(m, sides) for y, m in zip(years, stack)}, names=['year']).reset_index()
     meta = pd.DataFrame([s[:6] for s in sides], columns=['transect', 'side', 'cx', 'cy', 'nx', 'ny'])
     df = meta.merge(pos, on=['transect', 'side']).sort_values(['transect', 'side', 'year'])

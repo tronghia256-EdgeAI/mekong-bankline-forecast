@@ -4,8 +4,9 @@ Usage: python src/stitch.py tien|hau
 Reads data/tiles.json and data/processed/<tile>/{bank_positions,trends}.csv; writes
 data/processed/<river>/{bank_positions,trends}.csv and results/p1/<river>_lrr.png, and prints coverage.
 Each transect is placed on the river's coarse centerline (chainage_m from the upstream end at the border) and kept
-only by the tile whose centre is nearest in chainage, so overlaps are not counted twice. Sides are relabelled so
-that L/R are the left/right banks looking downstream. Transects beyond either end of the river are dropped.
+only by the tile whose centre is nearest in chainage, so overlaps are not counted twice; upstream of the river's
+narrow_until_m only narrow-mode tiles count, below it only normal tiles. Sides are relabelled so
+that L/R are the left/right banks looking downstream. Transects beyond either end of the river, or upstream of where it enters Vietnam, are dropped.
 """
 import json
 import pathlib
@@ -40,17 +41,23 @@ def main():
     cfg = json.loads(pathlib.Path('data/tiles.json').read_text())
     line = np.array(cfg['centerlines'][river])
     s_line = np.r_[0, np.cumsum(np.hypot(*np.diff(line, axis=0).T))]
-    tiles = {k: v['chainage_m'] for k, v in cfg['tiles'].items() if v['river'] == river}
-    names, centres = list(tiles), np.array(list(tiles.values()))
+    tiles = {k: v for k, v in cfg['tiles'].items() if v['river'] == river}
+    names = list(tiles)
+    centres = np.array([v['chainage_m'] for v in tiles.values()], float)
+    narrow = np.array([v.get('narrow', False) for v in tiles.values()])
+    narrow_to = cfg.get('narrow_until_m', {}).get(river, 0)
     pos, fit = [], []
     for name in names:
         src = pathlib.Path('data/processed', name)
         bp, tr = pd.read_csv(src / 'bank_positions.csv'), pd.read_csv(src / 'trends.csv')
         t = bp.drop_duplicates('transect')[['transect', 'cx', 'cy']]
         t['chainage_m'], off = chainage(line, s_line, t[['cx', 'cy']].to_numpy())
-        t = t[off <= MAX_OFF]
+        t = t[(off <= MAX_OFF) & (t.chainage_m >= cfg['border_m'][river])]   # Vietnamese reach only
         flip = np.corrcoef(t.transect, t.chainage_m)[0, 1] < 0    # this tile's centerline runs upstream
-        own = t[np.array([names[i] for i in np.abs(t.chainage_m.to_numpy()[:, None] - centres).argmin(1)]) == name]
+        # nearest tile centre among tiles of the right mode (narrow tiles upstream of narrow_to, normal tiles below)
+        s = t.chainage_m.to_numpy()[:, None]
+        own = t[np.array([names[i] for i in np.where(narrow[None] == (s < narrow_to), np.abs(s - centres), np.inf)
+                          .argmin(1)]) == name]
         for df, out in ((bp, pos), (tr, fit)):
             df = df.merge(own[['transect', 'chainage_m']], on='transect').rename(columns={'transect': 'tile_transect'})
             if flip:
