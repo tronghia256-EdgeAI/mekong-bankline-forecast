@@ -24,6 +24,7 @@ from scipy.stats import theilslopes
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from banklines import read  # noqa: E402
+from tile_check import P0, match, project  # noqa: E402
 
 OUT = pathlib.Path('figures')
 COL1, COL2 = 8.3 / 2.54, 17.0 / 2.54
@@ -251,26 +252,35 @@ def method():
     save(fig, 'fig02_method_example')
 
 
-def clicks(reach):
-    """Hand-clicked banks joined to current Landsat positions (flagged-unstable and explore items left out)."""
+def clicks(reach, narrow=None):
+    """Hand-clicked banks joined to the final (stitched) Landsat positions; flagged-unstable and explore items left out.
+    For a stitched river, narrow=True/False keeps only clicks up-/downstream of its narrow_until_m."""
     src = pathlib.Path('data/processed', reach)
     cl = pd.read_csv(src / 'accuracy_review.csv', encoding='utf-8-sig').drop_duplicates('id', keep='last')
     flagged = {i['id'] for i in json.loads((src / 'review_points.json').read_text())['items'] if i.get('unstable')}
     cl = cl[cl.verdict.eq('clicked') & ~cl.explore.astype(str).eq('True') & ~cl.id.isin(flagged)]
-    bp = pd.read_csv(src / 'bank_positions.csv')[['transect', 'side', 'year', 'dist_m']]
+    if reach in P0:   # P0 reach: evaluate the stitched full-river banks along the P0 transects (tile_check.py)
+        p0, st = pd.read_csv(src / 'bank_positions.csv'), pd.read_csv(f'data/processed/{P0[reach]}/bank_positions.csv')
+        bp = project(p0, st, match(p0, st)).drop(columns='dist_m').rename(columns={'s_on_p0': 'dist_m'})
+    else:
+        bp = pd.read_csv(src / 'bank_positions.csv')
+    if narrow is not None:
+        to = json.loads(pathlib.Path('data/tiles.json').read_text())['narrow_until_m'].get(reach, 0)
+        bp = bp[(bp.chainage_m < to) == narrow]
+    bp = bp[['transect', 'side', 'year', 'dist_m']]
     return cl.merge(bp.rename(columns={'year': 'compared_year'}), on=['transect', 'side', 'compared_year']).dropna(
         subset=['dist_m', 'user_dist_m'])
 
 
 def validation():
     fig, (a, b) = plt.subplots(1, 2, figsize=(COL2, COL2 * .4), gridspec_kw={'wspace': .32})
-    groups = [('Tien\n(reaches 1, 3)', ['sadec_caolanh', 'mythuan'], BLUE),
-              ('Hau, wide\n(reach 2)', ['longxuyen'], ORANGE),
-              ('Hau, narrow\n(above Châu Đốc)', ['hau'], AQUA)]
+    groups = [('Tien', [('sadec_caolanh', None), ('mythuan', None), ('tien', None)], BLUE),
+              ('Hau, wide', [('longxuyen', None), ('hau', False)], ORANGE),
+              ('Hau, narrow\n(above Châu Đốc)', [('hau', True)], AQUA)]
     labels = []
     rng = np.random.default_rng(0)
     for i, (name, reaches, col) in enumerate(groups):
-        e = pd.concat([clicks(r) for r in reaches]).pipe(lambda d: d.dist_m - d.user_dist_m)
+        e = pd.concat([clicks(*r) for r in reaches]).pipe(lambda d: d.dist_m - d.user_dist_m)
         a.plot(i + rng.uniform(-.18, .18, len(e)), e, 'o', ms=4, mfc=col, mec='white', mew=.5)
         a.plot([i - .28, i + .28], [e.median()] * 2, color=INK, lw=1.2)
         labels.append(f'{name}\nn = {len(e)}\nRMSE {np.sqrt((e ** 2).mean()):.0f} m')
