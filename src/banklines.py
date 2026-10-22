@@ -144,7 +144,12 @@ def own_river(reach, shape, tf):
         return np.ones(shape, bool)
     xy = to_xy(np.argwhere(np.ones(shape, bool)).astype(float), tf)
     d = {r: cKDTree(line).query(xy)[0].reshape(shape) for r, line in cfg['centerlines'].items()}
-    own = t['river']
+    if t.get('branch'):   # a secondary channel: its own line against the other main rivers (not its parent)
+        own, parent = t['river'], t['parent']
+        d[own] = cKDTree(cfg['branches'][own]['line']).query(xy)[0].reshape(shape)
+        d.pop(parent)
+    else:
+        own = t['river']
     inside = np.all([d[own] < v for r, v in d.items() if r != own], axis=0)
     return inside & (d[own] <= NARROW_CORRIDOR) if t.get('narrow') else inside
 

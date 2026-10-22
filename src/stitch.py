@@ -1,6 +1,6 @@
 """P1: join the per-tile outputs of banklines.py into one table per river.
 
-Usage: python src/stitch.py tien|hau
+Usage: python src/stitch.py tien|hau|tien_b1|...  (a branch is one narrow-mode tile)
 Reads data/tiles.json and data/processed/<tile>/{bank_positions,trends}.csv; writes
 data/processed/<river>/{bank_positions,trends}.csv and results/p1/<river>_lrr.png, and prints coverage.
 Each transect is placed on the river's coarse centerline (chainage_m from the upstream end at the border) and kept
@@ -39,13 +39,13 @@ def chainage(line, s_line, pts):
 def main():
     river = sys.argv[1]
     cfg = json.loads(pathlib.Path('data/tiles.json').read_text())
-    line = np.array(cfg['centerlines'][river])
+    line = np.array(cfg['centerlines'][river] if river in cfg['centerlines'] else cfg['branches'][river]['line'])
     s_line = np.r_[0, np.cumsum(np.hypot(*np.diff(line, axis=0).T))]
     tiles = {k: v for k, v in cfg['tiles'].items() if v['river'] == river}
     names = list(tiles)
     centres = np.array([v['chainage_m'] for v in tiles.values()], float)
     narrow = np.array([v.get('narrow', False) for v in tiles.values()])
-    narrow_to = cfg.get('narrow_until_m', {}).get(river, 0)
+    narrow_to = cfg.get('narrow_until_m', {}).get(river, np.inf if narrow.all() else 0)
     pos, fit = [], []
     for name in names:
         src = pathlib.Path('data/processed', name)
