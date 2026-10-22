@@ -7,9 +7,12 @@ results/p0/<reach>_*.png and prints a detectability summary.
 Method: per year, Otsu threshold on MNDWI -> largest connected water body (main channel).
 Centerline = skeleton of the >=50%-of-years channel belt (islands filled, canals opened away).
 Transects every 100 m, perpendicular to the smoothed centerline. On each side the bank is the
-outermost main-channel sample seen from the land end, refined to sub-pixel by linear
-interpolation of bilinear MNDWI across the threshold. Distance is measured from the
-centerline, so erosion = distance increases.
+mainland's edge facing the river ("walking from the mainland, the first water"): walking out from
+the open river (water >= ~330 m wide in >= half the years; river water on narrow branches), islands,
+bars and spurs narrower than 30 m are passed over and the first mainland run is the bank. Mainland =
+land joined to the raster border, with canals < ~90 m not cutting it and enclosed ponds filled.
+Refined to sub-pixel by linear interpolation of bilinear MNDWI across the threshold. Distance is
+measured from the centerline, so erosion = distance increases.
 """
 import pathlib
 import sys
@@ -31,6 +34,8 @@ SMOOTH_PX = 51                              # centerline moving-average window (
 BELT_MARGIN = 500.0                         # reject banks this far beyond the belt edge (canal mouths)
 REFINE = 6                                  # samples either side of the mask edge searched for the MNDWI crossing
 JUMP = 150.0                                # year-to-year change (m) treated as a detection mode switch
+CORE_PX = 5                                 # open river = water >= ~330 m wide in >= half the years
+MIN_LAND = 6                                # samples (30 m): narrower mainland spurs (jetties, moored boats) are skipped
 MAX_NODATA = 0.02                           # drop composites with more missing pixels than this
 MIN_YEARS = 15
 EIGHT = np.ones((3, 3), bool)
@@ -68,6 +73,33 @@ def longest_path(skel):
     return np.array(path, float)
 
 
+def mainland_mask(water):
+    """Land joined to the raster border, with the ponds it encloses filled in; islands and boats are not.
+    Canals narrower than ~90 m are opened away first so they do not cut the mainland into 'islands'."""
+    lab, _ = ndimage.label(~binary_opening(water, disk(1)), structure=EIGHT)
+    edge = np.unique(np.r_[lab[0], lab[-1], lab[:, 0], lab[:, -1]])
+    return ndimage.binary_fill_holes(np.isin(lab, edge[edge > 0]))
+
+
+def mainland_edge(water, mainland, k0):
+    """Last sample before the mainland's river-facing edge: walking out from the open river (k0),
+    islands, bars and short spurs are passed over; the first mainland run of MIN_LAND samples is the bank."""
+    j, n = k0, len(water)
+    if mainland[j]:                        # bank built out past the open-river edge: step back to water
+        while j > 0 and not water[j]:
+            j -= 1
+        return j if water[j] else None
+    while j + MIN_LAND < n:
+        if not mainland[j + 1]:
+            j += 1
+            continue
+        run = mainland[j + 1:j + 1 + MIN_LAND]
+        if run.all():
+            return j
+        j += 1 + np.nonzero(~run)[0][0]
+    return None
+
+
 def to_xy(rc, tf):
     return np.column_stack([tf.c + (rc[:, 1] + 0.5) * tf.a, tf.f + (rc[:, 0] + 0.5) * tf.e])
 
@@ -97,6 +129,10 @@ def main():
     main_ch = np.array([largest(binary_opening(binary_closing(np.nan_to_num(m, nan=-1) > t, disk(1)), disk(2)))
                         for m, t in zip(stack, thr)])
 
+    river = largest(main_ch.mean(0) >= 0.5)                                  # river water in >= half the years
+    core = largest(binary_opening(river, disk(CORE_PX)))                     # open river, fixed for all years
+    water = [np.nan_to_num(m, nan=-1) > t for m, t in zip(stack, thr)]
+    mainland = [mainland_mask(w) for w in water]
     belt = largest(main_ch.mean(0) >= 0.5)
     belt = largest(binary_opening(ndimage.binary_fill_holes(belt), disk(4)))
     rc = longest_path(skeletonize(belt))
@@ -124,16 +160,21 @@ def main():
                 continue
             in_belt = np.nonzero(belt[ri, ci])[0]
             belt_d = d[in_belt[-1]] if len(in_belt) else np.nan
-            for y, m, mc, t in zip(years, stack, main_ch, thr):
-                w = np.nonzero(mc[ri, ci])[0]
+            in_core = np.nonzero(core[ri, ci])[0]
+            if not len(in_core):                          # narrow branch: no open river, start from the river water
+                in_core = np.nonzero(river[ri, ci])[0]
+            k0 = in_core[-1] if len(in_core) else None   # outer edge of the open river on this side
+            for y, m, t, wat, ml in zip(years, stack, thr, water, mainland):
                 dist = np.nan
-                if len(w) and w[-1] < len(d) - 1:
-                    j = w[-1]
+                mv = m[ri, ci]
+                j = None if k0 is None else mainland_edge(wat[ri, ci], ml[ri, ci], k0)
+                if j is not None and np.isfinite(mv[min(k0, j):j + MIN_LAND + 1]).all():
                     lo, hi = max(j - REFINE, 0), min(j + REFINE, len(d) - 1)
                     v = ndimage.map_coordinates(m, [r[lo:hi + 1], c[lo:hi + 1]], order=1, cval=np.nan)
-                    cross = np.nonzero((v[:-1] > t) & (v[1:] <= t))[0]   # water -> land, outermost
+                    cross = np.nonzero((v[:-1] > t) & (v[1:] <= t))[0]   # water -> land
+                    dist = d[j] + STEP / 2
                     if np.isfinite(v).all() and len(cross):
-                        k = cross[-1]
+                        k = cross[np.argmin(np.abs(lo + cross - j))]    # the crossing nearest the mainland edge
                         dist = d[lo + k] + STEP * (v[k] - t) / (v[k] - v[k + 1])
                     if not dist <= belt_d + BELT_MARGIN:
                         dist = np.nan

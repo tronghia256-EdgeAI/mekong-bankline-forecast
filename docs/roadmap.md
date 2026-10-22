@@ -66,7 +66,7 @@ Cột "Giờ của bạn" là ước lượng thô sau khi đã tự động hó
 3. **Gần khu dân cư thật sự lở nhiều hơn** (tải trọng nhà, sóng tàu). Kiểm tra lùi bờ đo từ vệ tinh theo khoảng cách tới khu dân cư trước khi diễn giải mức chênh AUC.
 4. **Gắn tọa độ khó, địa giới đổi do sáp nhập 2025.** Dựng bảng đối chiếu xã cũ và xã mới; ghi sai số cho từng điểm và dùng trong phân tích độ nhạy.
 5. **Mô hình có biến phụ trợ không thắng ngoại suy tuyến tính.** Báo cáo thẳng, vì đóng góp chính là độ phủ đã kiểm chứng.
-6. **Bờ nhiều mép** (dải đất có ao hoặc đầm phía sau, cồn sát bờ): khoảng 9% điểm kiểm (4/45) lệch tới khoảng 110 m. Đã thử quy tắc "đất liền đầu tiên tính từ lòng sông" (P0, 22/10): sửa được 2/4 điểm nhưng làm hỏng điểm khác và lệch khỏi số liệu SIWRR (2006–2014: −24 so với −41,5 ha), nên giữ quy tắc cũ; các transect nhảy chế độ được đánh dấu và loại. Xử lý lại ở P1 khi có thêm mẫu.
+6. **Bờ nhiều mép** (dải đất có ao hoặc đầm phía sau, cồn sát bờ, nhà sàn): khoảng 9% điểm kiểm (4/45). Đã chuyển sang quy tắc "mép đất liền" (đi từ đất liền ra, gặp nước đầu tiên; bỏ qua cồn, kênh dưới ~90 m không cắt đất liền): RMSE so với điểm bấm tay giảm từ 45 xuống 36 m, đo đủ 810/810 transect, vẫn khớp SIWRR (tổng −105 so với −106 ha). Còn lệch ở chỗ cồn dính bờ qua bãi bùn và transect xiên ở ngã ba kênh; transect nhảy chế độ vẫn được đánh dấu và loại.
 7. **Có người công bố trước.** Cổng G1 ở P0; đăng EarthArXiv khi nộp. Theo dõi nhóm Bui/Tran (ĐH Mỏ–Địa chất) và nhóm Nguyen (ĐH KHTN Hà Nội, có đồng tác giả ở Đài KTTV An Giang).
 
 ## 5. Phân công
