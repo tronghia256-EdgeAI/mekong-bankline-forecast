@@ -31,4 +31,19 @@ To cite: Rüther et al. 2026 (NHESS, *Spatial machine learning modelling reveals
 type best explain shallow landslide release*) - biased inventories lead to over-optimistic performance
 metrics (motivation for H3, landslide domain); Villaça et al. 2024/2025 - newspaper-based flood inventories.
 
-Still to do for G1: full text of Nguyen et al. 2025 (requested from the author).
+## Nguyen et al. 2025, full text read 2026-10-22
+
+Nguyen T.G. et al. (2025/2026) *Physical Geography* 47(2): 105-129, doi:10.1080/02723646.2025.2555849 (26 pp.).
+- Labels are **pooled from two sources**, not Landsat only as the abstract suggests: 95 erosion points from
+  field missions (April and November 2024, handheld GPS), the MARD inventory map of coastal and riverbank
+  erosion (http://satlov2.vndss.com/) and provincial DONRE biannual erosion reports; plus 272 points from
+  Landsat water-land change 2010/2015/2024 (September images, random-forest water classification). 367 erosion
+  + 367 non-erosion points.
+- The two sources are not compared, stratified or tested for agreement; no source-wise performance.
+- Validation: AUC/RMSE/MAE/R2 on a "validation dataset" whose split is not described (no spatial or temporal
+  blocking stated); no forecast in time, no prediction intervals or coverage.
+- Delta-wide static susceptibility map (Tien, Hau, Ham Luong); highest in An Giang, Dong Thap, Vinh Long.
+
+Consequence: G1 passes. H3 framing changes: the closest same-region study pools reported and satellite labels
+without testing whether they agree, which is the question H3 asks; cite it as such (not as "satellite-only").
+New lead for the inventory (P1): the MARD erosion inventory map (satlov2.vndss.com).

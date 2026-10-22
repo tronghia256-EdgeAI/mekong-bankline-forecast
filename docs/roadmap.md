@@ -16,7 +16,7 @@ Lập ngày 21/10/2026, sửa cùng ngày theo báo cáo tính mới ([reports/T
 2. **Độ nhạy của việc đánh giá bản đồ nguy cơ theo nguồn nhãn:** cùng một mô hình, chấm bằng danh sách điểm báo cáo chính thức và bằng nhãn lùi bờ đo từ vệ tinh, rồi biểu diễn mức chênh AUC theo khoảng cách tới khu dân cư và đường sá.
    - Khái niệm đã có ở trượt lở và mô hình phân bố loài (Steger et al. 2017, 2021; Stanley & Kirschbaum 2017; Bornaetxea et al. 2023; Phillips et al. 2009; Hijmans 2012). Phần mới là phép so sánh cặp đầu tiên cho bờ sông.
    - Viết là "label-source sensitivity", không viết "nhãn báo cáo sai". Nhãn vệ tinh cũng có thiên lệch riêng.
-   - Đối thủ cùng vùng: Nguyen et al. 2025 (*Physical Geography*, nhãn từ Landsat, GB AUC 0,85); Bui et al. 2026 (255 điểm đã ghi nhận); Binh et al. 2024 (sông Hàm Luông).
+   - Đối thủ cùng vùng: Nguyen et al. 2025 (*Physical Geography*, gộp 95 điểm khảo sát/báo cáo với 272 điểm Landsat mà không so sánh hai nguồn, GB AUC 0,85); Bui et al. 2026 (255 điểm đã ghi nhận); Binh et al. 2024 (sông Hàm Luông).
 3. **Bộ kiểm kê điểm sạt lở cấp điểm, công khai, tải được** cho sông Tiền và sông Hậu ở An Giang và Đồng Tháp (theo địa giới trước 2025), có định nghĩa đơn vị nhất quán, ngày theo năm, nguồn gốc và sai số vị trí cho từng điểm.
    - Đã có các tập không công khai: WebGIS của Tổng cục PCTT ra mắt 6/2018 (562 điểm, máy chủ không phản hồi ngày 21/10/2026), 255 điểm của Bui et al. 2026, 248 vị trí của Bui & Tran 2023.
    - Số liệu chính thức trộn "điểm", "đoạn" và "vụ", trộn sông chính với kênh rạch. Ví dụ 585 điểm, 741 km "tính đến 2022", trong đó 87 điểm "đặc biệt nguy hiểm" ([VnExpress 15/8/2023](https://vnexpress.net/dong-mekong-gian-du-4634044.html)).
@@ -62,13 +62,13 @@ Cột "Giờ của bạn" là ước lượng thô sau khi đã tự động hó
 Dời có chủ đích: so dự báo ISPRS 2010 với thực tế chuyển sang P3 (hình minh họa, không phải cổng).
 
 **Trạng thái (22/10, thuật toán cuối của P0):**
-1. ✅ Scholar + quét cited-by xong (`results/p0/g1_scholar_check.md`): không thấy conformal cho bờ sông/bờ biển, không thấy so sánh nhãn báo cáo–vệ tinh cho bờ sông. ⏳ Toàn văn Nguyen 2025 đang xin tác giả (abstract: nhãn Landsat, không so sánh hai nguồn nhãn); nếu toàn văn cho thấy khác, chỉ ảnh hưởng H3 (P2), không ảnh hưởng dữ liệu P1.
+1. ✅ Scholar + quét cited-by xong (`results/p0/g1_scholar_check.md`): không thấy conformal cho bờ sông/bờ biển, không thấy so sánh nhãn báo cáo–vệ tinh cho bờ sông. ✅ Toàn văn Nguyen 2025 đã đọc (22/10), xem dưới.
 2. ✅ Ba đoạn: transect tuyến tính 80% / 89% / 78%; sai số so với điểm bấm (transect ổn định) RMSE 37 m (Sa Đéc, 3 điểm nhiều mép kéo lên) / 23 m (Long Xuyên) / 12 m (Mỹ Thuận). Sửa trong P0: kẹp MNDWI về [-1, 1] (Otsu hỏng; Long Xuyên 2008 được cứu), lùi qua mương bị gộp vào đất liền (hết transect bị kẹt), cù lao > 1 km² tính là đất liền, nhảy-trở-lại (spike) bị loại còn đổi bậc (step) được giữ và đánh dấu.
 3. ✅ Không lệch hệ thống giữa vệ tinh (L7–L8 −0,2 m; L8–L9 −0,2 m; L5–L7 −1,0 m), không cần hiệu chỉnh (`results/p0/sadec_caolanh_sensor_check.md`).
 4. ✅ Độ lặp lại 3,1 m mỗi ảnh ghép; khung tháng 1–3 so với 2–4 lệch khoảng 1 m.
 5. ✅ Transect từng bị đánh dấu: RMSE 20 m (5 điểm); sông Hậu: 23 m (6 điểm).
 Còn ghi nhận: 3 điểm nhiều mép ở Sa Đéc (T303R, T326L, T410R) lệch khoảng 100 m; quy ước cù lao (bờ cù lao đối mặt sông chính được đo, bờ đất liền dọc lạch phụ sau cù lao thì không) - quyết ở P1. SIWRR: −106,3 so với −106 ha.
-**P0 đóng ngày 22/10** (chủ đề tài đồng ý; toàn văn Nguyen 2025 chờ song song, chỉ ảnh hưởng H3).
+**P0 đóng ngày 22/10** (chủ đề tài đồng ý). Toàn văn Nguyen 2025 đã đọc 22/10: nhãn gộp hai nguồn (95 khảo sát/báo cáo + 272 Landsat), không so sánh, không chia khối không gian, không dự báo theo thời gian → G1 qua; H3 trích bài này như ví dụ gộp nhãn chưa kiểm tra (`results/p0/g1_scholar_check.md`). Nguồn mới cho bộ kiểm kê: bản đồ sạt lở của Bộ NN&PTNT (satlov2.vndss.com).
 
 **Trạng thái P1 (22/10):**
 - Phạm vi (chủ đề tài chọn): sông Tiền từ biên giới tới cầu Mỹ Thuận, sông Hậu từ biên giới tới cầu Cần Thơ. Đường tâm thô từ JRC (đường đi rẻ nhất qua lòng sông rộng), 15 ô 30 km chồng nhau (`src/river_tiles.py`, `data/tiles.json`); trong mỗi ô, phần gần sông kia hơn bị bỏ (tách hai sông ở Vàm Nao). Thuật toán P0 giữ nguyên (đầu ra Mỹ Thuận trùng từng byte).
