@@ -11,7 +11,11 @@ import ee
 import requests
 
 PROJECT = 'mekong-bankline'
-REACHES = {'sadec_caolanh': [105.55, 10.22, 105.85, 10.50]}  # lon/lat bbox on the Tien River
+REACHES = {  # lon/lat bbox
+    'sadec_caolanh': [105.55, 10.22, 105.85, 10.50],  # Tien River
+    'longxuyen': [105.30, 10.30, 105.545, 10.51],     # Hau River, Vam Nao junction to above Cu lao Tan Loc (Tien touches NE corner)
+    'mythuan': [105.73, 10.24, 105.915, 10.37],       # Tien River, Sa Dec bend to My Thuan bridge (overlaps sadec_caolanh west of 105.85)
+}
 CRS, SCALE, NODATA = 'EPSG:32648', 30, -9999
 SENSORS = [  # collection, green, swir1
     ('LANDSAT/LT05/C02/T1_L2', 'SR_B2', 'SR_B5'),

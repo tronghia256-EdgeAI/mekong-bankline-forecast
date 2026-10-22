@@ -53,6 +53,22 @@ Cột "Giờ của bạn" là ước lượng thô sau khi đã tự động hó
 | **P3 Độ bền** | 4/1–17/1 | ~3 | Kiểm lại bằng Sentinel-2 10 m; độ nhạy theo sai số tọa độ (100–500 m, theo Steger 2016); công bố bộ kiểm kê và code lên Zenodo. | Kết luận không đổi |
 | **P4 Viết bài** | 18/1–21/2 | ~30 | Tôi viết bản nháp, bạn sửa, kiểm từng con số và quyết định cách khai báo dùng AI. Gửi giảng viên. Đăng EarthArXiv khi nộp. Nộp khoảng cuối tháng 2/2027 (trừ hao Tết). | Giảng viên đã duyệt |
 
+**Tiêu chí đóng P0** (chỉ sang P1 khi mọi mục có kết quả và không mục nào đỏ):
+1. G1: đọc toàn văn Nguyen et al. 2025; tìm Google Scholar và quét danh sách cited-by của Steger 2017/2021, Phillips 2009 (chủ đề tài: khoảng 1 giờ).
+2. Thuật toán chạy ổn trên ít nhất 3 đoạn: Sa Đéc–Cao Lãnh (xong), một đoạn sông Hậu (Long Xuyên), một đoạn hạ lưu sông Tiền (Mỹ Thuận); tỷ lệ transect ổn định và sai số so với điểm bấm tay không kém đoạn đầu.
+3. Không có lệch hệ thống giữa các thế hệ vệ tinh (Landsat 5/7 so với 8/9; 8 so với 9) đủ lớn để tạo xu hướng giả, hoặc có hiệu chỉnh.
+4. Độ lặp lại đo trực tiếp bằng hai ảnh ghép độc lập trong cùng năm; độ nhạy theo khung thời gian ghép ảnh (tháng 1–3 so với 2–4) đã biết.
+5. Sai số kiểm cả ở transect bị đánh dấu không ổn định và ở sông Hậu (khoảng 15 điểm bấm thêm).
+Dời có chủ đích: so dự báo ISPRS 2010 với thực tế chuyển sang P3 (hình minh họa, không phải cổng).
+
+**Trạng thái (22/10, thuật toán cuối của P0):**
+1. ✅ Scholar + quét cited-by xong (`results/p0/g1_scholar_check.md`): không thấy conformal cho bờ sông/bờ biển, không thấy so sánh nhãn báo cáo–vệ tinh cho bờ sông. ⏳ Toàn văn Nguyen 2025 đang xin tác giả (abstract: nhãn Landsat, không so sánh hai nguồn nhãn); nếu toàn văn cho thấy khác, chỉ ảnh hưởng H3 (P2), không ảnh hưởng dữ liệu P1.
+2. ✅ Ba đoạn: transect tuyến tính 80% / 89% / 78%; sai số so với điểm bấm (transect ổn định) RMSE 37 m (Sa Đéc, 3 điểm nhiều mép kéo lên) / 23 m (Long Xuyên) / 12 m (Mỹ Thuận). Sửa trong P0: kẹp MNDWI về [-1, 1] (Otsu hỏng; Long Xuyên 2008 được cứu), lùi qua mương bị gộp vào đất liền (hết transect bị kẹt), cù lao > 1 km² tính là đất liền, nhảy-trở-lại (spike) bị loại còn đổi bậc (step) được giữ và đánh dấu.
+3. ✅ Không lệch hệ thống giữa vệ tinh (L7–L8 −0,2 m; L8–L9 −0,2 m; L5–L7 −1,0 m), không cần hiệu chỉnh (`results/p0/sadec_caolanh_sensor_check.md`).
+4. ✅ Độ lặp lại 3,1 m mỗi ảnh ghép; khung tháng 1–3 so với 2–4 lệch khoảng 1 m.
+5. ✅ Transect từng bị đánh dấu: RMSE 20 m (5 điểm); sông Hậu: 23 m (6 điểm).
+Còn ghi nhận: 3 điểm nhiều mép ở Sa Đéc (T303R, T326L, T410R) lệch khoảng 100 m; quy ước cù lao (bờ cù lao đối mặt sông chính được đo, bờ đất liền dọc lạch phụ sau cù lao thì không) - quyết ở P1. SIWRR: −106,3 so với −106 ha.
+
 **Tạp chí** (SJR 2025, đều Q1; giá lấy từ danh sách APC của Elsevier ngày 5/10/2026):
 - **Chính: NHESS** (SJR 1,418). Hợp nhất với câu chuyện độ phủ và nguồn nhãn của bản đồ nguy cơ. Phí 1.800 €, được miễn nếu Việt Nam thuộc Research4Life; phải xác nhận trên research4life.org trước khi nộp.
 - **Dự phòng 1: Geomorphology** (SJR 1,003). Đăng miễn phí theo đường subscription.

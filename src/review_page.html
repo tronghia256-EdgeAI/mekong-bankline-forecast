@@ -199,6 +199,7 @@ function show(i) {
   const it = item();
   $('title').textContent = `${it.id} · bờ ${it.side === 'L' ? 'trái' : 'phải'}` + (answered.has(it.id) ? ' (đã trả lời)' : '');
   $('sub').textContent = it.explore ? `Khám phá Phú Hựu: lở ${it.lrr} m/năm, ngừng sau ~2017? Đổi các bản ảnh để xem.`
+    : it.unstable ? `Bờ bị đánh dấu không ổn định (bờ vệ tinh nhảy tới ${Math.round(it.max_jump_m)} m giữa hai năm). Bấm mép thật như thường.`
     : (it.hotspot ? `Điểm nóng: ${it.lrr > 0 ? 'lở' : 'bồi'} ${Math.abs(it.lrr)} m/năm` : `Bờ ổn định: ${it.lrr} m/năm`);
   $('year').innerHTML = it.banks.map(b => `<option>${b.year}</option>`).join('');
   $('year').value = it.banks.some(b => b.year === 2024) ? 2024 : it.banks[it.banks.length - 1].year;

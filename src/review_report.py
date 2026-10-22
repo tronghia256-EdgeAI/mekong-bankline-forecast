@@ -1,10 +1,13 @@
 """Accuracy of satellite bank positions against the human clicks from review_server.py.
 
 Usage: python src/review_report.py sadec_caolanh
-Reads data/processed/<reach>/accuracy_review.csv (last answer per item; explore items left out)
-and trends.csv; prints and writes results/p0/<reach>_accuracy.md.
+Reads data/processed/<reach>/accuracy_review.csv (last answer per item; explore items left out),
+bank_positions.csv (current positions, not the value saved at click time), trends.csv and
+review_points.json (items flagged unstable are reported as their own group only);
+prints and writes results/p0/<reach>_accuracy.md.
 error = our_dist_m - user_dist_m (positive = our bank too far landward).
 """
+import json
 import pathlib
 import sys
 
@@ -32,15 +35,22 @@ def main():
     tr = pd.read_csv(src / 'trends.csv')
     annual = tr[tr.stable].lrr.abs().median()
 
+    # compare with the CURRENT positions (the algorithm may have changed since the click was saved)
+    bp = pd.read_csv(src / 'bank_positions.csv')[['transect', 'side', 'year', 'dist_m']]
+    df = df.drop(columns='our_dist_m').merge(bp.rename(columns={'year': 'compared_year', 'dist_m': 'our_dist_m'}),
+                                             on=['transect', 'side', 'compared_year'], how='left')
     ok = df[df.verdict.eq('clicked')].dropna(subset=['our_dist_m', 'user_dist_m']).copy()
     ok['err'] = ok.our_dist_m.astype(float) - ok.user_dist_m.astype(float)
+    flagged = {i['id'] for i in json.loads((src / 'review_points.json').read_text())['items'] if i.get('unstable')}
+    bad, ok = ok[ok.id.isin(flagged)], ok[~ok.id.isin(flagged)]
     month = pd.to_datetime(ok.imagery_capture_date, errors='coerce').dt.month
     groups = [('all', ok.err),
               ('hotspot (abs lrr > 5 m/yr)', ok.err[ok.hotspot.astype(str).eq('True')]),
               ('other stable banks', ok.err[~ok.hotspot.astype(str).eq('True')]),
               ('imagery Jan-Apr (dry)', ok.err[month.between(1, 4)]),
               ('imagery May-Dec (wet/transition)', ok.err[month.between(5, 12)]),
-              ('imagery date unknown', ok.err[month.isna()])]
+              ('imagery date unknown', ok.err[month.isna()]),
+              ('flagged unstable (not in rows above)', bad.err)]
     counts = df.verdict.value_counts()
     lines = [f'# Bank position accuracy vs high-resolution imagery: {reach}', '',
              f'Source: `{f.as_posix()}` (Esri World Imagery Wayback, clicks by hand on the transect line; '

@@ -17,8 +17,11 @@ T250-330) changes each value by ≤ 3 ha.
 | 2017-2021 | -23.0 | -30.8 | -28.8 |
 | Total | -106.0 | -105.1 | -108.8 |
 
+Final P0 algorithm (MNDWI clipped to [-1, 1], ditch-aware step-back, islands > 1 km² as mainland, spikes
+excluded): -15.4, -45.7, -14.6, -30.6 ha; total -106.3 ha.
+
 Same temporal pattern (slowdown 2014-2017, re-acceleration 2017-2021) and near-identical total under
-both bank rules. Right bank does not match (SIWRR +73 ha accretion in total; ours mixed): the right side
+all bank rules. Right bank does not match (SIWRR +73 ha accretion in total; ours mixed): the right side
 of this reach is the mid-channel bar / side-channel zone.
 
 ## Bank rule comparison against the owner's 45 hand-clicked sites (Esri Wayback, reviewed 2026-10-22)
