@@ -68,6 +68,15 @@ Dời có chủ đích: so dự báo ISPRS 2010 với thực tế chuyển sang 
 4. ✅ Độ lặp lại 3,1 m mỗi ảnh ghép; khung tháng 1–3 so với 2–4 lệch khoảng 1 m.
 5. ✅ Transect từng bị đánh dấu: RMSE 20 m (5 điểm); sông Hậu: 23 m (6 điểm).
 Còn ghi nhận: 3 điểm nhiều mép ở Sa Đéc (T303R, T326L, T410R) lệch khoảng 100 m; quy ước cù lao (bờ cù lao đối mặt sông chính được đo, bờ đất liền dọc lạch phụ sau cù lao thì không) - quyết ở P1. SIWRR: −106,3 so với −106 ha.
+**P0 đóng ngày 22/10** (chủ đề tài đồng ý; toàn văn Nguyen 2025 chờ song song, chỉ ảnh hưởng H3).
+
+**Trạng thái P1 (22/10):**
+- Phạm vi (chủ đề tài chọn): sông Tiền từ biên giới tới cầu Mỹ Thuận, sông Hậu từ biên giới tới cầu Cần Thơ. Đường tâm thô từ JRC (đường đi rẻ nhất qua lòng sông rộng), 15 ô 30 km chồng nhau (`src/river_tiles.py`, `data/tiles.json`); trong mỗi ô, phần gần sông kia hơn bị bỏ (tách hai sông ở Vàm Nao). Thuật toán P0 giữ nguyên (đầu ra Mỹ Thuận trùng từng byte).
+- Ghép (`src/stitch.py`): sông Tiền 1.191 transect trên 131 km (86% tuyến tính), sông Hậu 1.086 transect từ Châu Đốc (km 37) tới Cần Thơ (95% tuyến tính). Bờ trái/phải theo hướng xuôi dòng.
+- Kiểm chéo với P0 (`results/p1/tile_check.md`): lệch vị trí trung vị 0,9–5,7 m, lệch tốc độ 0,05–0,23 m/năm; RMSE so với điểm bấm 34 / 22 / 12 m (P0: 37 / 25 / 12 m).
+- **Chưa đo được: sông Hậu biên giới → Châu Đốc (~35 km)**, lòng sông rộng trung vị 180–210 m (6–7 pixel), bị bộ lọc kênh (< ~150 m) cắt đứt. Đoạn này có ~20 điểm báo cáo (An Phú). Chờ chủ đề tài quyết.
+- Trước khi đóng băng protocol: cắt phần đầu tuyến nằm bên Campuchia (1–3 km); quyết quy ước cù lao; quyết đoạn Hậu trên Châu Đốc.
+- Hình bài báo (`src/figures.py` → `figures/`, PNG 300 dpi + SVG): vùng nghiên cứu, ví dụ phương pháp, tốc độ thay đổi bờ toàn tuyến, kiểm định.
 
 **Tạp chí** (SJR 2025, đều Q1; giá lấy từ danh sách APC của Elsevier ngày 5/10/2026):
 - **Chính: NHESS** (SJR 1,418). Hợp nhất với câu chuyện độ phủ và nguồn nhãn của bản đồ nguy cơ. Phí 1.800 €, được miễn nếu Việt Nam thuộc Research4Life; phải xác nhận trên research4life.org trước khi nộp.

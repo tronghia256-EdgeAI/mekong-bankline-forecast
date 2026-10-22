@@ -1,11 +1,13 @@
 """Download annual dry-season (Jan-Apr) median MNDWI composites from Landsat C2 L2 for one reach.
 
-Usage: python src/gee_water.py sadec_caolanh [first_year last_year]
+Usage: python src/gee_water.py sadec_caolanh|tien_01|... [first_year last_year]
 Writes data/raw/<reach>/mndwi_<year>.tif (bands: mndwi, n_obs) and scenes.csv.
 """
 import csv
+import json
 import pathlib
 import sys
+import time
 
 import ee
 import requests
@@ -16,6 +18,9 @@ REACHES = {  # lon/lat bbox
     'longxuyen': [105.30, 10.30, 105.545, 10.51],     # Hau River, Vam Nao junction to above Cu lao Tan Loc (Tien touches NE corner)
     'mythuan': [105.73, 10.24, 105.915, 10.37],       # Tien River, Sa Dec bend to My Thuan bridge (overlaps sadec_caolanh west of 105.85)
 }
+TILES = pathlib.Path('data/tiles.json')  # P1 tiles of the full Tien and Hau (river_tiles.py)
+if TILES.exists():
+    REACHES.update({k: v['bbox'] for k, v in json.loads(TILES.read_text())['tiles'].items()})
 CRS, SCALE, NODATA = 'EPSG:32648', 30, -9999
 SENSORS = [  # collection, green, swir1
     ('LANDSAT/LT05/C02/T1_L2', 'SR_B2', 'SR_B5'),
@@ -66,7 +71,11 @@ def main():
         img, counts = composite(region, year)
         url = img.getDownloadURL({'region': region, 'scale': SCALE, 'crs': CRS,
                                   'format': 'GEO_TIFF', 'filePerBand': False})
-        r = requests.get(url, timeout=600)
+        for attempt in range(4):   # EE answers 503 now and then under parallel downloads
+            r = requests.get(url, timeout=600)
+            if r.status_code < 500 or attempt == 3:
+                break
+            time.sleep(30 * (attempt + 1))
         r.raise_for_status()
         tif.write_bytes(r.content)
         rows = [x for x in rows if x['year'] != str(year)] + [{'year': str(year), **{k: str(v) for k, v in counts.items()}}]

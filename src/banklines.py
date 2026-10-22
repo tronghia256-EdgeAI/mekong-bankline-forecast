@@ -14,6 +14,7 @@ land joined to the raster border, with canals < ~90 m not cutting it and enclose
 Refined to sub-pixel by linear interpolation of bilinear MNDWI across the threshold. Distance is
 measured from the centerline, so erosion = distance increases.
 """
+import json
 import pathlib
 import sys
 from collections import deque
@@ -25,6 +26,7 @@ import numpy as np
 import pandas as pd
 import rasterio
 from scipy import ndimage
+from scipy.spatial import cKDTree
 from scipy.stats import theilslopes
 from skimage.filters import threshold_otsu
 from skimage.morphology import binary_closing, binary_opening, disk, skeletonize
@@ -42,6 +44,7 @@ ISLAND_PX = 1111                            # 1 km2 of 30 m pixels: larger islan
 MAX_NODATA = 0.02                           # drop composites with more missing pixels than this
 MIN_YEARS = 15
 EIGHT = np.ones((3, 3), bool)
+TILES = pathlib.Path('data/tiles.json')        # P1 tiles of the full rivers (river_tiles.py)
 
 
 def largest(mask):
@@ -126,13 +129,27 @@ def read(f):
     return np.clip(a, -1, 1), tf
 
 
+def own_river(reach, shape, tf):
+    """For a P1 tile, pixels nearer its own river's coarse centerline than the other river's; else all pixels."""
+    cfg = json.loads(TILES.read_text()) if TILES.exists() else {'tiles': {}}
+    if reach not in cfg['tiles']:
+        return np.ones(shape, bool)
+    xy = to_xy(np.argwhere(np.ones(shape, bool)).astype(float), tf)
+    d = {r: cKDTree(line).query(xy)[0].reshape(shape) for r, line in cfg['centerlines'].items()}
+    own = cfg['tiles'][reach]['river']
+    return np.all([d[own] < v for r, v in d.items() if r != own], axis=0)
+
+
 def load(reach):
-    """Yearly composites of a reach, dropping years with too much nodata (e.g. Landsat 7 SLC-off only)."""
+    """Yearly composites of a reach, dropping years with too much nodata (e.g. Landsat 7 SLC-off only).
+    In a P1 tile the other river's side is set to nodata so it never enters Otsu or the main-channel pick."""
     files = sorted(pathlib.Path('data/raw', reach).glob('mndwi_*.tif'))
     years = np.array([int(f.stem.split('_')[1]) for f in files])
     pairs = [read(f) for f in files]
     stack, tf = np.array([p[0] for p in pairs]), pairs[0][1]
-    keep = np.isnan(stack).mean(axis=(1, 2)) <= MAX_NODATA
+    inside = own_river(reach, stack.shape[1:], tf)
+    keep = np.isnan(stack[:, inside]).mean(axis=1) <= MAX_NODATA
+    stack[:, ~inside] = np.nan
     if (~keep).any():
         print('dropped years (nodata share > %.0f%%): %s' % (100 * MAX_NODATA, years[~keep].tolist()))
     return years[keep], stack[keep], tf
@@ -253,7 +270,7 @@ def main():
         print(f'horizon {h} yr: share of linear with |rate|*h > 2*scale = {(ok.lrr.abs() * h > 2 * ok.sd_res).mean():.0%}'
               f', > 2*{NOISE_M} m measured noise = {(ok.lrr.abs() * h > 2 * NOISE_M).mean():.0%}')
 
-    figs = pathlib.Path('results/p0')
+    figs = pathlib.Path('results/p1/tiles' if reach.split('_')[0] in ('tien', 'hau') else 'results/p0')   # P1 tile quick-looks
     figs.mkdir(parents=True, exist_ok=True)
     H, W = stack.shape[1:]
     ext = (tf.c, tf.c + W * tf.a, tf.f + H * tf.e, tf.f)

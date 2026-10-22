@@ -4,6 +4,8 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 *.tif
+# per-tile quick-looks from banklines.py (re-creatable)
+results/p1/tiles/
 # Python / notebooks
 __pycache__/
 .ipynb_checkpoints/
