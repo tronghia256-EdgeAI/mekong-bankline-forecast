@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiểm tra đường bờ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; font: 14px/1.4 system-ui, sans-serif; background: #f4f4f2; color: #222; }
+  body { display: flex; }
+  #map { flex: 1; cursor: crosshair; }
+  #panel { width: 330px; padding: 10px 14px; overflow-y: auto; box-sizing: border-box; }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  .row { margin: 8px 0; }
+  .muted { color: #666; font-size: 13px; }
+  .warn { color: #a34a00; font-size: 13px; }
+  select { max-width: 100%; }
+  button { font: inherit; padding: 6px 10px; margin: 2px 0; cursor: pointer; }
+  #save { background: #1a7f37; color: #fff; border: 0; border-radius: 4px; }
+  #save:disabled { background: #9bb8a2; cursor: default; }
+  textarea { width: 100%; box-sizing: border-box; height: 48px; font: inherit; }
+  .key span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+  <h1>Kiểm tra đường bờ</h1>
+  <div id="progress" class="muted"></div>
+  <div class="row"><b id="title"></b><div id="sub" class="muted"></div></div>
+  <div class="row">
+    Ảnh nền (bản Wayback):<br>
+    <button id="older" title="Bản cũ hơn">◀</button>
+    <select id="release"></select>
+    <button id="newer" title="Bản mới hơn">▶</button><br>
+    <button id="distinct" class="muted">Chỉ hiện các ảnh khác nhau ở điểm này</button>
+  </div>
+  <div class="row">Ngày chụp: <b id="capture">…</b> <span id="source" class="muted"></span>
+    <div id="season" class="warn"></div></div>
+  <div class="row">So với bờ năm: <select id="year"></select> <span id="yearnote" class="muted"></span></div>
+  <div class="row key muted">
+    <span style="background:#e0245e"></span>bờ vệ tinh năm đã chọn<br>
+    <span style="background:#ff9f40;opacity:.6"></span>năm trước/sau<br>
+    <span style="background:#ffd400"></span>điểm bạn bấm
+  </div>
+  <div class="row">Bấm vào <b>mép nước – đất thật</b> trên đường kẻ xanh.</div>
+  <div class="row" id="clickinfo"></div>
+  <div class="row">Ghi chú:<textarea id="note"></textarea></div>
+  <div class="row">
+    <button id="save" disabled>Lưu điểm bấm</button>
+    <button id="cannot">Không thấy mép</button>
+    <button id="skip">Bỏ qua</button><br>
+    <button id="prev" class="muted">← Điểm trước</button>
+    <button id="next" class="muted">Giữ như cũ, điểm sau →</button>
+  </div>
+  <div class="row muted" id="status"></div>
+</div>
+<script>
+const CONFIG = 'https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json';
+const $ = id => document.getElementById(id);
+const map = L.map('map', { maxZoom: 20 });
+const layers = L.layerGroup().addTo(map);
+let items = [], answered = new Set(), last = {}, idx = 0, releases = [], allReleases = [], tiles = null;
+const REVIEW = new URLSearchParams(location.search).has('review');   // ?review: start at item 1, show earlier answers
+let click = null, capture = null, picked = null, metaCache = {};
+
+function release() { return releases[$('release').selectedIndex]; }
+function item() { return items[idx]; }
+function bankYear(y) { return item().banks.find(b => b.year === y); }
+function anchor() { const b = item().banks; return b[b.length - 1].latlon; }   // query imagery date near the bank
+
+function setRelease(i) {
+  $('release').selectedIndex = Math.max(0, Math.min(releases.length - 1, i));
+  const old = tiles;   // keep the old imagery until the new one has loaded (no white flash)
+  // imagery here stops at z18 (z19 tiles are 404, so deeper zoom upsamples z18); Wayback throttles
+  // bursts with transient 403s, so retry a failed tile a few times
+  tiles = L.tileLayer(release().url, { maxZoom: 20, maxNativeZoom: 18, keepBuffer: 4,
+    attribution: 'Esri World Imagery Wayback' }).addTo(map);
+  tiles.on('tileerror', e => {
+    const t = e.tile, n = (t.retry || 0) + 1;
+    if (n > 3) return;
+    t.retry = n;
+    setTimeout(() => { t.src = t.src.replace(/[?&]r=\d+$/, '') + (t.src.includes('?') ? '&' : '?') + 'r=' + n; }, 700 * n);
+  });
+  if (old) {
+    const drop = () => { if (map.hasLayer(old)) map.removeLayer(old); };
+    tiles.once('load', drop);
+    setTimeout(drop, 8000);
+  }
+  lookupDate();
+}
+
+async function metaQuery(r, z) {
+  const [lat, lon] = anchor();
+  for (let layer = Math.min(13, Math.max(0, 23 - z)); layer <= 13; layer++) {
+    const key = [r.num, layer, lat, lon].join('/');
+    if (!(key in metaCache)) {
+      const q = new URLSearchParams({ f: 'json', where: '1=1', outFields: 'SRC_DATE2,NICE_DESC,SRC_RES',
+        geometry: `${lon},${lat}`, geometryType: 'esriGeometryPoint', inSR: '4326',
+        spatialRel: 'esriSpatialRelIntersects', returnGeometry: 'false' });
+      const j = await (await fetch(`${r.meta}/${layer}/query?${q}`)).json();
+      metaCache[key] = j.features && j.features.length ? j.features[0].attributes : null;
+    }
+    if (metaCache[key]) return metaCache[key];
+  }
+  return null;
+}
+
+async function lookupDate() {
+  const r = release(), it = item();
+  if (!r || !it) return;
+  capture = null;
+  $('capture').textContent = '…'; $('source').textContent = ''; $('season').textContent = '';
+  let a = null;
+  try { a = await metaQuery(r, Math.round(map.getZoom())); } catch (e) { }
+  if (r !== release() || it !== item()) return;   // user moved on meanwhile
+  if (!a || !a.SRC_DATE2) { $('capture').textContent = 'không rõ'; return; }
+  capture = new Date(a.SRC_DATE2).toISOString().slice(0, 10);
+  $('capture').textContent = capture;
+  $('source').textContent = `(${a.NICE_DESC || ''}${a.SRC_RES ? ', ' + a.SRC_RES + ' m' : ''})`;
+  const m = +capture.slice(5, 7);
+  if (m > 4) $('season').textContent = `Ảnh tháng ${m}, không phải mùa khô (tháng 1–4): mép nước có thể cao hơn bờ vệ tinh.`;
+  if (capture !== picked) { picked = capture; pickYear(+capture.slice(0, 4)); }   // keep a manual year on zoom
+}
+
+async function fitRelease() {   // newest release whose imagery here is not newer than our last bank year
+  const it = item(), maxY = it.banks[it.banks.length - 1].year, z = Math.round(map.getZoom());
+  const year = async i => {
+    try { const a = await metaQuery(releases[i], z); if (a && a.SRC_DATE2) return new Date(a.SRC_DATE2).getUTCFullYear(); } catch (e) { }
+    return 9999;
+  };
+  if (await year(0) <= maxY) return 0;
+  let lo = 0, hi = releases.length - 1;   // newest first; capture dates rise with release dates
+  if (await year(hi) > maxY) return 0;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (await year(m) > maxY) lo = m; else hi = m; }
+  return hi;
+}
+
+function pickYear(y) {
+  const ys = item().banks.map(b => b.year);
+  const best = ys.reduce((a, b) => Math.abs(b - y) < Math.abs(a - y) ? b : a);
+  $('year').value = best;
+  $('yearnote').textContent = best !== y ? `(không có ${y})` : '';
+  draw();
+}
+
+function draw() {
+  layers.clearLayers();
+  const it = item(), y = +$('year').value, ys = it.banks.map(b => b.year), k = ys.indexOf(y);
+  L.polyline(it.segment, { color: '#000', weight: 5, opacity: .5 }).addTo(layers);
+  L.polyline(it.segment, { color: '#00e5ff', weight: 2 }).addTo(layers);
+  for (const j of [k - 1, k + 1]) if (j >= 0 && j < ys.length)
+    L.circleMarker(it.banks[j].latlon, { radius: 5, color: '#ff9f40', weight: 2, opacity: .6, fillOpacity: .2 })
+      .bindTooltip(String(ys[j])).addTo(layers);
+  if (k >= 0) L.circleMarker(it.banks[k].latlon, { radius: 6, color: '#e0245e', weight: 3, fillOpacity: .3 })
+    .bindTooltip(String(y)).addTo(layers);
+  if (click) L.circleMarker(click.latlon, { radius: 6, color: '#ffd400', weight: 3, fillOpacity: .5 }).addTo(layers);
+  showClick();
+}
+
+function showClick() {
+  const b = bankYear(+$('year').value);
+  $('save').disabled = !click;
+  if (!click) { $('clickinfo').textContent = ''; return; }
+  const d = click.dist, our = b ? b.dist_m : null;
+  $('clickinfo').innerHTML = `Bạn bấm: <b>${d.toFixed(0)} m</b> từ tim sông` +
+    (our != null ? ` · vệ tinh: ${our.toFixed(0)} m · lệch ${(our - d >= 0 ? '+' : '') + (our - d).toFixed(0)} m` : '');
+}
+
+map.on('click', e => {
+  if (!items.length || idx >= items.length) return;
+  const [a, b] = item().segment, c = Math.cos(a[0] * Math.PI / 180);
+  const vx = (b[1] - a[1]) * c, vy = b[0] - a[0];
+  const px = (e.latlng.lng - a[1]) * c, py = e.latlng.lat - a[0];
+  const t = Math.max(0, Math.min(1, (px * vx + py * vy) / (vx * vx + vy * vy)));   // snap onto transect
+  click = { dist: t * item().seg_len_m, latlon: [a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])] };
+  draw();
+});
+map.on('zoomend', () => { if (items.length && idx < items.length) lookupDate(); });
+
+function show(i) {
+  idx = i; click = null; picked = null; $('note').value = ''; $('status').textContent = '';
+  if (releases !== allReleases) {   // a 'distinct' list belongs to the previous point
+    const cur = release();
+    allReleases.forEach(r => delete r.cap);
+    releases = allReleases; fillReleases();
+    $('release').selectedIndex = Math.max(0, releases.indexOf(cur));
+    $('distinct').disabled = false; $('distinct').textContent = 'Chỉ hiện các ảnh khác nhau ở điểm này';
+  }
+  $('progress').textContent = `Điểm ${Math.min(idx + 1, items.length)} / ${items.length} · đã trả lời ${answered.size}`;
+  if (idx >= items.length) {
+    layers.clearLayers();
+    $('title').textContent = 'Xong. Cảm ơn!';
+    $('sub').textContent = 'Có thể đóng trang. Rà soát lại từ đầu: mở localhost:8765/?review';
+    if (!tiles) setRelease(0);
+    return;
+  }
+  const it = item();
+  $('title').textContent = `${it.id} · bờ ${it.side === 'L' ? 'trái' : 'phải'}` + (answered.has(it.id) ? ' (đã trả lời)' : '');
+  $('sub').textContent = it.explore ? `Khám phá Phú Hựu: lở ${it.lrr} m/năm, ngừng sau ~2017? Đổi các bản ảnh để xem.`
+    : (it.hotspot ? `Điểm nóng: ${it.lrr > 0 ? 'lở' : 'bồi'} ${Math.abs(it.lrr)} m/năm` : `Bờ ổn định: ${it.lrr} m/năm`);
+  $('year').innerHTML = it.banks.map(b => `<option>${b.year}</option>`).join('');
+  $('year').value = it.banks.some(b => b.year === 2024) ? 2024 : it.banks[it.banks.length - 1].year;
+  $('yearnote').textContent = '';
+  const prev = last[it.id];
+  if (prev) {
+    $('note').value = prev.note || '';
+    if (it.banks.some(b => b.year === +prev.compared_year)) $('year').value = prev.compared_year;
+    if (prev.user_dist_m !== '' && prev.user_dist_m != null) {
+      const t = +prev.user_dist_m / it.seg_len_m, [a, b] = it.segment;
+      click = { dist: +prev.user_dist_m, latlon: [a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])] };
+    }
+    $('status').textContent = `Lần trước: ${prev.verdict}` +
+      (click ? ` tại ${click.dist.toFixed(0)} m (chấm vàng)` : '') + '. Đúng rồi thì bấm "Giữ như cũ".';
+  }
+  map.setView(bankYear(+$('year').value).latlon, 17);
+  draw();
+  $('capture').textContent = 'đang tìm ảnh…';
+  fitRelease().then(i => { if (it === item()) setRelease(i); });
+}
+
+async function answer(verdict) {
+  const it = item(), r = release();
+  const body = { id: it.id, verdict, compared_year: +$('year').value, note: $('note').value,
+    user_dist_m: verdict === 'clicked' ? click.dist : null,
+    imagery_release: `${r.id} (${r.date})`, imagery_capture_date: capture || '',
+    imagery_source: $('source').textContent.replace(/[()]/g, '') };
+  $('status').textContent = 'Đang lưu…';
+  try {
+    const res = await fetch('/answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(await res.text());
+  } catch (e) { $('status').textContent = 'Lỗi lưu, thử lại: ' + e.message; return; }
+  answered.add(it.id);
+  last[it.id] = { ...body, user_dist_m: body.user_dist_m ?? '' };
+  show(idx + 1);
+}
+
+async function distinct() {
+  $('distinct').disabled = true;
+  const z = Math.round(map.getZoom()), seen = new Map(), cur = release();
+  let done = 0;
+  const queue = releases.slice();
+  async function worker() {
+    while (queue.length) {
+      const r = queue.shift();
+      try { const a = await metaQuery(r, z); if (a && a.SRC_DATE2) r.cap = new Date(a.SRC_DATE2).toISOString().slice(0, 10); } catch (e) { }
+      $('distinct').textContent = `Đang tìm… ${++done} / ${releases.length}`;
+    }
+  }
+  await Promise.all([1, 2, 3, 4, 5, 6].map(worker));
+  // keep the oldest release of each capture date (newest first in the list)
+  for (const r of releases.slice().reverse()) if (r.cap && !seen.has(r.cap)) seen.set(r.cap, r);
+  releases = [...seen.values()].reverse();
+  fillReleases();
+  const keep = releases.findIndex(r => r.cap === cur.cap);
+  setRelease(keep < 0 ? 0 : keep);
+  $('distinct').textContent = `${releases.length} ảnh khác nhau (sang điểm khác sẽ hiện đủ)`;
+}
+
+function fillReleases() {
+  $('release').innerHTML = releases.map(r => `<option>${r.date}${r.cap ? ' · chụp ' + r.cap : ''}</option>`).join('');
+}
+
+$('release').onchange = () => setRelease($('release').selectedIndex);
+$('older').onclick = () => setRelease($('release').selectedIndex + 1);
+$('newer').onclick = () => setRelease($('release').selectedIndex - 1);
+$('year').onchange = () => { $('yearnote').textContent = ''; draw(); };
+$('save').onclick = () => answer('clicked');
+$('cannot').onclick = () => answer('cannot_see');
+$('skip').onclick = () => answer('skip');
+$('prev').onclick = () => { if (idx > 0) show(idx - 1); };
+$('next').onclick = () => { if (idx < items.length) show(idx + 1); };
+$('distinct').onclick = distinct;
+
+(async () => {
+  try {
+    const [pts, ans, cfg] = await Promise.all(['/points', '/answered', CONFIG].map(u => fetch(u).then(r => r.json())));
+    items = pts.items; last = ans; answered = new Set(Object.keys(ans));
+    releases = Object.entries(cfg).map(([num, c]) => ({ num, id: c.layerIdentifier, meta: c.metadataLayerUrl,
+      date: (c.itemTitle.match(/\d{4}-\d{2}-\d{2}/) || [''])[0],
+      url: c.itemURL.replace('{level}', '{z}').replace('{row}', '{y}').replace('{col}', '{x}') }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+    allReleases = releases;
+  } catch (e) { $('status').textContent = 'Không tải được dữ liệu: ' + e.message; return; }
+  fillReleases();
+  const first = items.findIndex(it => !answered.has(it.id));
+  show(REVIEW ? 0 : (first < 0 ? items.length : first));
+})();
+</script>
+</body>
+</html>
