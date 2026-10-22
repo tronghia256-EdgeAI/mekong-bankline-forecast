@@ -251,36 +251,41 @@ def method():
     save(fig, 'fig02_method_example')
 
 
+def clicks(reach):
+    """Hand-clicked banks joined to current Landsat positions (flagged-unstable and explore items left out)."""
+    src = pathlib.Path('data/processed', reach)
+    cl = pd.read_csv(src / 'accuracy_review.csv', encoding='utf-8-sig').drop_duplicates('id', keep='last')
+    flagged = {i['id'] for i in json.loads((src / 'review_points.json').read_text())['items'] if i.get('unstable')}
+    cl = cl[cl.verdict.eq('clicked') & ~cl.explore.astype(str).eq('True') & ~cl.id.isin(flagged)]
+    bp = pd.read_csv(src / 'bank_positions.csv')[['transect', 'side', 'year', 'dist_m']]
+    return cl.merge(bp.rename(columns={'year': 'compared_year'}), on=['transect', 'side', 'compared_year']).dropna(
+        subset=['dist_m', 'user_dist_m'])
+
+
 def validation():
     fig, (a, b) = plt.subplots(1, 2, figsize=(COL2, COL2 * .4), gridspec_kw={'wspace': .32})
-    lim = 0
-    for (reach, name), col in zip(P0_REACHES.items(), (BLUE, ORANGE, AQUA)):
-        src = pathlib.Path('data/processed', reach)
-        cl = pd.read_csv(src / 'accuracy_review.csv', encoding='utf-8-sig').drop_duplicates('id', keep='last')
-        flagged = {i['id'] for i in json.loads((src / 'review_points.json').read_text())['items'] if i.get('unstable')}
-        cl = cl[cl.verdict.eq('clicked') & ~cl.explore.astype(str).eq('True') & ~cl.id.isin(flagged)]
-        bp = pd.read_csv(src / 'bank_positions.csv')[['transect', 'side', 'year', 'dist_m']]
-        d = cl.merge(bp.rename(columns={'year': 'compared_year'}), on=['transect', 'side', 'compared_year']).dropna(
-            subset=['dist_m', 'user_dist_m'])
-        e = d.dist_m - d.user_dist_m
-        a.plot(d.user_dist_m, d.dist_m, 'o', ms=4, mfc=col, mec='white', mew=.5,
-               label=f'{name} (n = {len(d)}, RMSE {np.sqrt((e ** 2).mean()):.0f} m)')
-        lim = max(lim, d[['dist_m', 'user_dist_m']].max().max())
-    lim = np.ceil(lim / 250) * 250
-    a.plot([0, lim], [0, lim], color=INK2, lw=.8, ls=(0, (3, 2)), zorder=0)
-    a.set_xlim(0, lim)
-    a.set_ylim(0, lim)
-    a.set_aspect('equal')
-    a.set_xlabel('Bank on high-resolution imagery (m from centerline)')
-    a.set_ylabel('Bank from Landsat (m from centerline)')
+    groups = [('Tien\n(reaches 1, 3)', ['sadec_caolanh', 'mythuan'], BLUE),
+              ('Hau, wide\n(reach 2)', ['longxuyen'], ORANGE),
+              ('Hau, narrow\n(above Châu Đốc)', ['hau'], AQUA)]
+    labels = []
+    rng = np.random.default_rng(0)
+    for i, (name, reaches, col) in enumerate(groups):
+        e = pd.concat([clicks(r) for r in reaches]).pipe(lambda d: d.dist_m - d.user_dist_m)
+        a.plot(i + rng.uniform(-.18, .18, len(e)), e, 'o', ms=4, mfc=col, mec='white', mew=.5)
+        a.plot([i - .28, i + .28], [e.median()] * 2, color=INK, lw=1.2)
+        labels.append(f'{name}\nn = {len(e)}\nRMSE {np.sqrt((e ** 2).mean()):.0f} m')
+    a.axhline(0, color=INK2, lw=.6)
+    a.set_xticks(range(len(groups)), labels, fontsize=7)
+    a.set_xlim(-.6, len(groups) - .4)
+    a.set_ylabel('Landsat bank − hand-clicked bank (m)\n(negative = Landsat bank riverward)')
     chart_axes(a)
-    a.legend(loc='upper left', handletextpad=.2)
+    a.grid(axis='x', visible=False)
     panel(a, 'a')
 
     ours = siwrr_areas()
     x = np.arange(len(SIWRR))
-    b.bar(x - .2, -np.array(list(SIWRR.values())), .38, color=INK2, label=f'SIWRR (Phong et al., 2022), total {-sum(SIWRR.values()):.0f} ha')
-    b.bar(x + .2, -np.array(list(ours.values())), .38, color=BLUE, label=f'This study, total {-sum(ours.values()):.0f} ha')
+    b.bar(x - .2, -np.array(list(SIWRR.values())), .38, color=INK2, label=f'SIWRR (Phong et al., 2022): {-sum(SIWRR.values()):.0f} ha')
+    b.bar(x + .2, -np.array(list(ours.values())), .38, color=BLUE, label=f'This study: {-sum(ours.values()):.0f} ha')
     b.set_xticks(x, list(SIWRR))
     b.set_ylabel('Eroded area, left bank (ha)')
     chart_axes(b)
