@@ -4,8 +4,9 @@ Usage: python src/reach_units.py
 Reads data/processed/{tien,hau}/{bank_positions,trends}.csv, data/tiles.json and the pre-2025 commune polygons
 data/raw/admin/communes_mekong.geojson (Kontur Boundaries VN 2023-06-28 from OpenStreetMap, ODbL). The bank point
 of a transect-side is its median position over the years (spikes left out). Writes data/processed/units.csv:
-river, transect, side, chainage_m (from the border), lon, lat, province, district, commune, in_scope
-(old An Giang, Dong Thap, Tien Giang = new An Giang and Dong Thap), unit_2km, unit_5km.
+river, transect, side, chainage_m (from where the centerline enters Vietnam; negative along a border river),
+lon, lat, province, district, commune (empty = bank in Cambodia), in_scope (old An Giang, Dong Thap, Tien Giang =
+new An Giang and Dong Thap), unit_2km, unit_5km.
 """
 import json
 import pathlib
@@ -46,7 +47,7 @@ def main():
     u['in_scope'] = u.province.isin(SCOPE)
     for km in (2, 5):
         u[f'unit_{km}km'] = (u.river + '_' + u.side + '_'
-                             + (u.chainage_m // (km * 1000)).astype(int).astype(str).str.zfill(3))
+                             + (u.chainage_m // (km * 1000)).astype(int).map('{:+04d}'.format))
     u.to_csv('data/processed/units.csv', index=False, encoding='utf-8')
     print(f'{len(u)} bank points, no commune: {u.commune.isna().sum()}')
     print(u.groupby(['river', 'province']).size().to_string())

@@ -13,4 +13,4 @@ Answered: 8 (clicked 8, cannot see 0, skipped 0). error = ours - clicked, positi
 | imagery date unknown | 0 | - | - | - | - |
 | flagged unstable (not in rows above) | 0 | - | - | - | - |
 
-Verdict: median abs error 7.2 m = 8.3 x the median annual change of stable transect-sides (0.9 m/yr), so a single year of change is below the measurement error on a typical bank.
+Verdict: median abs error 7.2 m = 8.8 x the median annual change of stable transect-sides (0.8 m/yr), so a single year of change is below the measurement error on a typical bank.

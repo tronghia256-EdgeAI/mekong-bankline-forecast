@@ -6,7 +6,7 @@ data/processed/<river>/{bank_positions,trends}.csv and results/p1/<river>_lrr.pn
 Each transect is placed on the river's coarse centerline (chainage_m from the upstream end at the border) and kept
 only by the tile whose centre is nearest in chainage, so overlaps are not counted twice; upstream of the river's
 narrow_until_m only narrow-mode tiles count, below it only normal tiles. Sides are relabelled so
-that L/R are the left/right banks looking downstream. Transects beyond either end of the river, or upstream of where it enters Vietnam, are dropped.
+that L/R are the left/right banks looking downstream. Transects beyond either end of the river are dropped; bank points outside Vietnam are left for reach_units.py.
 """
 import json
 import pathlib
@@ -52,7 +52,7 @@ def main():
         bp, tr = pd.read_csv(src / 'bank_positions.csv'), pd.read_csv(src / 'trends.csv')
         t = bp.drop_duplicates('transect')[['transect', 'cx', 'cy']]
         t['chainage_m'], off = chainage(line, s_line, t[['cx', 'cy']].to_numpy())
-        t = t[(off <= MAX_OFF) & (t.chainage_m >= cfg['border_m'][river])]   # Vietnamese reach only
+        t = t[off <= MAX_OFF]   # banks outside Vietnam get no commune in reach_units.py (border rivers keep their VN bank)
         flip = np.corrcoef(t.transect, t.chainage_m)[0, 1] < 0    # this tile's centerline runs upstream
         # nearest tile centre among tiles of the right mode (narrow tiles upstream of narrow_to, normal tiles below)
         s = t.chainage_m.to_numpy()[:, None]
