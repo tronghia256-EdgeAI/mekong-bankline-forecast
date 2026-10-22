@@ -24,13 +24,14 @@ import rasterio
 from scipy import ndimage
 from scipy.stats import theilslopes
 from skimage.filters import threshold_otsu
-from skimage.morphology import binary_opening, disk, skeletonize
+from skimage.morphology import binary_closing, binary_opening, disk, skeletonize
 
 SPACING, HALF, STEP = 100.0, 3000.0, 5.0   # transect spacing, half-length, sample step (m)
 SMOOTH_PX = 51                              # centerline moving-average window (skeleton pixels)
 BELT_MARGIN = 500.0                         # reject banks this far beyond the belt edge (canal mouths)
 REFINE = 6                                  # samples either side of the mask edge searched for the MNDWI crossing
 JUMP = 150.0                                # year-to-year change (m) treated as a detection mode switch
+MAX_NODATA = 0.02                           # drop composites with more missing pixels than this
 MIN_YEARS = 15
 EIGHT = np.ones((3, 3), bool)
 
@@ -87,8 +88,14 @@ def main():
         a[a == -9999] = np.nan
         stack.append(a)
     stack = np.array(stack)
+    keep = np.isnan(stack).mean(axis=(1, 2)) <= MAX_NODATA   # e.g. 2012: Landsat 7 SLC-off stripes only
+    if (~keep).any():
+        print('dropped years (nodata share > %.0f%%): %s' % (100 * MAX_NODATA, years[~keep].tolist()))
+    years, stack = years[keep], stack[keep]
     thr = np.array([threshold_otsu(m[np.isfinite(m)]) for m in stack])
-    main_ch = np.array([largest(np.nan_to_num(m, nan=-1) > t) for m, t in zip(stack, thr)])
+    # close 1-2 px gaps (bridges), then drop water narrower than ~150 m (canals) before picking the main body
+    main_ch = np.array([largest(binary_opening(binary_closing(np.nan_to_num(m, nan=-1) > t, disk(1)), disk(2)))
+                        for m, t in zip(stack, thr)])
 
     belt = largest(main_ch.mean(0) >= 0.5)
     belt = largest(binary_opening(ndimage.binary_fill_holes(belt), disk(4)))
