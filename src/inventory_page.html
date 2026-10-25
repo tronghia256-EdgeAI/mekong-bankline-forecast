@@ -37,6 +37,7 @@
   <table id="info"></table>
   <div class="row" id="quotebox"></div>
   <div class="row" id="links"></div>
+  <div class="row" id="same"></div>
   <div class="row key muted">
     <span style="border:2px solid #ffd400"></span>ranh giới xã khớp được &nbsp;
     <span style="background:#22d3ee;border-radius:50%"></span>bờ đã đo &nbsp;
@@ -73,6 +74,9 @@ L.tileLayer(LBL, { maxZoom: 20, maxNativeZoom: 18 }).addTo(map);
 const layers = L.layerGroup().addTo(map);
 let items = [], answered = {}, idx = 0, click = null, clickMarker = null;
 const STATUS = { measured: 'bờ đã đo', commune_unmeasured: 'xã chưa có bờ đo', unmatched: 'chưa khớp được xã' };
+const KIND = { news: 'tin báo về một vụ sạt lở', decision_via_news: 'quyết định công bố khẩn cấp', decision_text: 'quyết định công bố khẩn cấp',
+  official_list_via_news: 'danh sách / cảnh báo chính thức', official_page: 'danh sách / cảnh báo chính thức', 'official letter': 'văn bản chính thức',
+  odm_webgis_2018: 'danh sách điểm sạt lở 2018 (Bộ NN&PTNT)', odv_mard_points: 'điểm trong danh sách Bộ NN&PTNT' };
 const VERD = { keep: 'đã giữ', keep_point: 'đã giữ + vị trí', reject: 'đã loại', duplicate: 'trùng', unsure: 'không chắc' };
 const FIELDS = [['province_old', 'Tỉnh (cũ)'], ['district_old', 'Huyện'], ['commune_old', 'Xã'], ['hamlet_or_landmark', 'Ấp / địa danh'],
   ['river', 'Sông'], ['bank', 'Bờ'], ['channel', 'Kênh dòng'], ['event_year', 'Năm'], ['severity', 'Mức độ'], ['length_m', 'Dài (m)'],
@@ -93,7 +97,13 @@ function show() {
   $('prevans').style.display = a ? '' : 'none';
   $('note').value = a ? a.note : '';
   $('info').innerHTML = FIELDS.filter(([k]) => it[k] != null && it[k] !== '')
-    .map(([k, n]) => `<tr><td>${n}</td><td>${esc(it[k])}</td></tr>`).join('');
+    .map(([k, n]) => `<tr><td>${n}</td><td>${esc(k === 'source_type' ? (KIND[it[k]] || it[k]) : it[k])}</td></tr>`).join('');
+  const others = it.communes_matched ? items.filter(o => o !== it && o.communes_matched === it.communes_matched) : [];
+  $('same').innerHTML = others.length ? 'Các dòng khác ở cùng xã (chỉ <b>Trùng</b> khi cùng năm + cùng chỗ + cùng vụ):<table>' +
+    others.map(o => `<tr${o.event_year === it.event_year ? ' style="background:#fff3c4"' : ''}><td>${o.site_id} · ${o.event_year || '?'}</td>` +
+      `<td>${esc(KIND[o.source_type] || o.source_type)}${o.hamlet_or_landmark ? ' — ' + esc(o.hamlet_or_landmark) : ''}` +
+      `${answered[o.site_id] ? ' <span class="tag done">' + VERD[answered[o.site_id].verdict] + '</span>' : ''}</td></tr>`).join('') +
+    '</table><span class="muted">Nền vàng = cùng năm với dòng đang xem.</span>' : '';
   $('quotebox').innerHTML = it.quote ? `Trích nguyên văn:<blockquote>${esc(it.quote)}</blockquote>` : '';
   const urls = [it.source_url, ...String(it.source_ref || '').split(' | ')].filter((u, i, s) => u && u.startsWith('http') && s.indexOf(u) === i);
   $('links').innerHTML = urls.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">Mở nguồn ${i + 1}</a>`).join(' · ');
