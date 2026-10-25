@@ -7,7 +7,8 @@ the cheapest path between its two end points through water seen in >= 50% of obs
 short-cuts through canals, and places 30 km square tiles every 20 km of chainage. Writes data/tiles.json
 (centerlines in UTM 48N m, tile bboxes in lon/lat for gee_water.py, the chainage up to which a river is narrow;
 tiles centred there run banklines' narrow mode; the chainage where each river enters Vietnam, from LSIB 2017)
-and results/p1/tiles.png; plus secondary channels behind large islands (BRANCHES), each one narrow-mode tile.
+and results/p1/tiles.png; plus every river island of 1-150 km2 (a hole in the connected river system),
+each its own tile measured all round by banklines' island mode (no hand-picked channels).
 Each tile owns the transects nearest its centre in chainage (stitch.py); banklines.load masks out the pixels of a
 tile nearer the other river's centerline, so the other river (6.5 km away at Vam Nao) is never the main channel.
 """
@@ -23,6 +24,7 @@ import requests
 from rasterio.warp import transform
 from scipy import ndimage
 from skimage.graph import route_through_array
+from skimage.measure import find_contours
 
 REGION = [104.95, 9.95, 106.0, 11.0]
 RIVERS = {  # (upstream end at the Cambodian border, downstream end), lon/lat
@@ -33,13 +35,8 @@ CRS, SCALE = 'EPSG:32648', 90
 TILE, STRIDE = 30e3, 20e3          # tile side and spacing along the river (m)
 MAX_SNAP = 5e3
 NARROW_TO = {'hau': (105.117, 10.705)}   # narrow channel (~200 m vs ~420 m below) upstream of Chau Doc, lon/lat
-BRANCHES = {  # secondary channels behind large islands (cù lao), run in narrow mode; (parent, [start, end] downstream),
-    # end points picked on the gridded JRC >= 50% mask, inside each branch and away from its junctions
-    'tien_b1': ('tien', [(105.3411, 10.6925), (105.3592, 10.5794)]),   # west branch along Phu Tan (Phu Tho, Phu My, Kien An)
-    'tien_b2': ('tien', [(105.268, 10.7694), (105.3292, 10.7224)]),    # loop around Long Hoa / Phu Thuan A
-    'tien_b3a': ('tien', [(105.4899, 10.5159), (105.5619, 10.4317)]),  # west channel around cù lao Gieng (Cho Moi)
-    'tien_b3b': ('tien', [(105.5027, 10.5313), (105.572, 10.4615)]),   # east channel around cù lao Gieng (main route)
-}
+ISLAND_KM2 = (1.0, 150.0)   # river islands (cù lao) measured all round: area of the hole in the JRC >= 50% river system
+ISL_MARGIN = 3000.0          # island tile = island bounding box + this margin (m)
 
 
 def occurrence():
@@ -129,16 +126,36 @@ def main():
         ax.plot(line[:, 0], line[:, 1], 'k-', lw=1)
         ax.plot(ex, ey, 'r^')
         print(f'{river}: {seg[-1] / 1e3:.1f} km, {len(centres)} tiles, enters Vietnam at {out["border_m"][river] / 1e3:.1f} km')
-    out['branches'] = {}
-    for name, (parent, ends) in BRANCHES.items():   # one narrow-mode tile per branch, centred on it
-        # shortest path through water: the width weighting would pull a branch route back into the main channel
-        line, s, seg, ex, ey = route(name, ends, np.where(water, 1.0, 1e3))
-        out['branches'][name] = {'parent': parent, 'line': line.round(1).tolist()}
-        mid = len(line) // 2
-        out['tiles'][name] = {'river': name, 'parent': parent, 'branch': True, 'narrow': True,
-                              'chainage_m': round(float(s[mid])), 'bbox': tile_box(*line[mid])}
-        ax.plot(line[:, 0], line[:, 1], 'm-', lw=1)
-        print(f'{name}: {seg[-1] / 1e3:.1f} km')
+    # river islands: holes of the connected river system (both rivers join at Vam Nao), found by rule, not by hand
+    lab, _ = ndimage.label(water, structure=np.ones((3, 3), bool))
+    sizes = np.bincount(lab.ravel())
+    sizes[0] = 0
+    system = lab == sizes.argmax()
+    hl, hn = ndimage.label(ndimage.binary_fill_holes(system) & ~system)
+    lines = {r: np.array(v) for r, v in out['centerlines'].items()}
+    found = []
+    for k in range(1, hn + 1):
+        m = hl == k
+        area = m.sum() * SCALE ** 2 / 1e6
+        if not ISLAND_KM2[0] <= area <= ISLAND_KM2[1]:
+            continue
+        rc = max(find_contours(np.pad(m, 1).astype(float), .5), key=len) - 1
+        xy = np.column_stack([tf.c + (rc[:, 1] + 0.5) * tf.a, tf.f + (rc[:, 0] + 0.5) * tf.e])
+        cen = xy.mean(0)
+        river = min(lines, key=lambda r: np.hypot(*(lines[r] - cen).T).min())
+        found.append((river, float(np.hypot(*(lines[river] - cen).T).argmin() * 100.0), area, xy))
+    out['islands'] = {}
+    for river, ch, area, xy in sorted(found, key=lambda f: (f[0], f[1])):
+        name = f'isl_{river}_{sum(k.startswith(f"isl_{river}_") for k in out["islands"]) + 1:02d}'
+        (x0, y0), (x1, y1) = xy.min(0) - ISL_MARGIN, xy.max(0) + ISL_MARGIN
+        lon, lat = transform(CRS, 'EPSG:4326', [x0, x1, x0, x1], [y0, y0, y1, y1])
+        out['islands'][name] = {'parent': river, 'area_km2': round(area, 1), 'chainage_m': round(ch),
+                                'polygon': xy.round(0).tolist()}
+        out['tiles'][name] = {'river': name, 'parent': river, 'island': True, 'chainage_m': round(ch),
+                              'bbox': [round(min(lon), 4), round(min(lat), 4), round(max(lon), 4), round(max(lat), 4)]}
+        ax.plot(xy[:, 0], xy[:, 1], 'm-', lw=1)
+        ax.text(*xy.mean(0), name[4:], fontsize=6, color='m')
+        print(f'{name}: {area:.1f} km2 at {ch / 1e3:.1f} km')
     ax.set_title('Coarse centerlines (JRC occurrence >= 50%) and P1 tiles')
     pathlib.Path('data/tiles.json').write_text(json.dumps(out, indent=1))
     figs = pathlib.Path('results/p1')

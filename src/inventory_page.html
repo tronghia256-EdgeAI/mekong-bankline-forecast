@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duyệt bộ kiểm kê</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; font: 14px/1.45 system-ui, sans-serif; background: #f4f4f2; color: #222; }
+  body { display: flex; }
+  #map { flex: 1; cursor: crosshair; }
+  #panel { width: 420px; padding: 10px 14px; overflow-y: auto; box-sizing: border-box; }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  .row { margin: 8px 0; }
+  .muted { color: #666; font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  td { padding: 2px 4px; vertical-align: top; border-bottom: 1px solid #e2e1dc; }
+  td:first-child { color: #666; width: 110px; }
+  blockquote { margin: 6px 0; padding: 6px 8px; background: #fff; border-left: 3px solid #b8b7b0; font-style: italic; }
+  button { font: inherit; padding: 6px 10px; margin: 2px 0; cursor: pointer; border-radius: 4px; border: 1px solid #b8b7b0; background: #fff; }
+  .keep { background: #1a7f37; color: #fff; border: 0; }
+  .keep:disabled { background: #9bb8a2; cursor: default; }
+  .reject { background: #b42318; color: #fff; border: 0; }
+  textarea { width: 100%; box-sizing: border-box; height: 52px; font: inherit; }
+  .tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 12px; background: #e6e4dd; }
+  .done { background: #d3ecd9; }
+  .key span { display: inline-block; width: 10px; height: 10px; margin-right: 4px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+  <h1>Duyệt bộ kiểm kê điểm sạt lở</h1>
+  <div id="progress" class="muted"></div>
+  <div class="row"><b id="title"></b> <span id="status" class="tag"></span> <span id="prevans" class="tag done"></span></div>
+  <table id="info"></table>
+  <div class="row" id="quotebox"></div>
+  <div class="row" id="links"></div>
+  <div class="row key muted">
+    <span style="border:2px solid #ffd400"></span>ranh giới xã khớp được &nbsp;
+    <span style="background:#22d3ee;border-radius:50%"></span>bờ đã đo &nbsp;
+    <span style="background:#e0245e;border-radius:50%"></span>tọa độ có sẵn &nbsp;
+    <span style="background:#ffd400;border-radius:50%"></span>điểm bạn bấm
+  </div>
+  <div class="row">
+    Câu hỏi: <b>bài viết có đúng là sạt lở bờ sông Tiền/Hậu (dòng chính hoặc bờ cù lao) ở xã này không?</b>
+    Nếu nhận ra chính xác chỗ (ấp, bến, công trình...) trên ảnh thì bấm vào bờ ở chỗ đó.
+  </div>
+  <div class="row" id="clickinfo"></div>
+  <div class="row">Ghi chú (sai xã thì ghi xã đúng; trùng thì ghi mã dòng trùng):<textarea id="note"></textarea></div>
+  <div class="row">
+    <button class="keep" id="keep">Giữ (đúng, vị trí theo xã)</button>
+    <button class="keep" id="keeppt" disabled>Giữ + vị trí đã bấm</button><br>
+    <button class="reject" id="reject">Loại (không phải sạt lở bờ sông chính / sai)</button><br>
+    <button id="dup">Trùng dòng khác</button>
+    <button id="unsure">Không chắc</button>
+  </div>
+  <div class="row">
+    <button id="prev" class="muted">← Dòng trước</button>
+    <button id="next" class="muted">Dòng sau →</button>
+    <button id="first" class="muted">Về dòng chưa duyệt đầu tiên</button>
+  </div>
+  <div class="row muted" id="msg"></div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const map = L.map('map', { maxZoom: 20 }).setView([10.5, 105.5], 10);
+const IMG = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const LBL = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
+L.tileLayer(IMG, { maxZoom: 20, maxNativeZoom: 18, attribution: 'Esri World Imagery' }).addTo(map);
+L.tileLayer(LBL, { maxZoom: 20, maxNativeZoom: 18 }).addTo(map);
+const layers = L.layerGroup().addTo(map);
+let items = [], answered = {}, idx = 0, click = null, clickMarker = null;
+const STATUS = { measured: 'bờ đã đo', commune_unmeasured: 'xã chưa có bờ đo', unmatched: 'chưa khớp được xã' };
+const VERD = { keep: 'đã giữ', keep_point: 'đã giữ + vị trí', reject: 'đã loại', duplicate: 'trùng', unsure: 'không chắc' };
+const FIELDS = [['province_old', 'Tỉnh (cũ)'], ['district_old', 'Huyện'], ['commune_old', 'Xã'], ['hamlet_or_landmark', 'Ấp / địa danh'],
+  ['river', 'Sông'], ['bank', 'Bờ'], ['channel', 'Kênh dòng'], ['event_year', 'Năm'], ['severity', 'Mức độ'], ['length_m', 'Dài (m)'],
+  ['unit_type', 'Đơn vị'], ['source_type', 'Loại nguồn'], ['source_date', 'Ngày nguồn'], ['confidence', 'Độ tin cậy'],
+  ['communes_matched', 'Xã khớp'], ['notes', 'Ghi chú máy']];
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+function show() {
+  const it = items[idx];
+  layers.clearLayers(); click = null; $('keeppt').disabled = true; $('clickinfo').textContent = '';
+  const done = Object.keys(answered).filter(k => items.some(i => i.site_id === k)).length;
+  $('progress').textContent = `Dòng ${idx + 1}/${items.length} · đã duyệt ${done}`;
+  $('title').textContent = it.site_id;
+  $('status').textContent = STATUS[it.status] || it.status;
+  const a = answered[it.site_id];
+  $('prevans').textContent = a ? VERD[a.verdict] : '';
+  $('prevans').style.display = a ? '' : 'none';
+  $('note').value = a ? a.note : '';
+  $('info').innerHTML = FIELDS.filter(([k]) => it[k] != null && it[k] !== '')
+    .map(([k, n]) => `<tr><td>${n}</td><td>${esc(it[k])}</td></tr>`).join('');
+  $('quotebox').innerHTML = it.quote ? `Trích nguyên văn:<blockquote>${esc(it.quote)}</blockquote>` : '';
+  const urls = [it.source_url, ...String(it.source_ref || '').split(' | ')].filter((u, i, s) => u && u.startsWith('http') && s.indexOf(u) === i);
+  $('links').innerHTML = urls.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">Mở nguồn ${i + 1}</a>`).join(' · ');
+  const bounds = L.latLngBounds([]);
+  for (const g of it.polygons) {
+    const lyr = L.geoJSON(g, { style: { color: '#ffd400', weight: 2, fill: false } }).addTo(layers);
+    bounds.extend(lyr.getBounds());
+  }
+  for (const [la, lo] of it.banks) { L.circleMarker([la, lo], { radius: 2, color: '#22d3ee', weight: 0, fillOpacity: .9 }).addTo(layers); bounds.extend([la, lo]); }
+  if (it.lat && it.lon) {
+    const ll = [+it.lat, +String(it.lon).replace(',', '.')];
+    L.circleMarker(ll, { radius: 7, color: '#fff', weight: 2, fillColor: '#e0245e', fillOpacity: 1 }).addTo(layers); bounds.extend(ll);
+  }
+  if (a && a.lat) {
+    click = [+a.lat, +a.lon];
+    clickMarker = L.circleMarker(click, { radius: 7, color: '#000', weight: 1, fillColor: '#ffd400', fillOpacity: 1 }).addTo(layers);
+    $('keeppt').disabled = false;
+    $('clickinfo').textContent = `Vị trí đã bấm lần trước: ${click[0].toFixed(5)}, ${click[1].toFixed(5)}`;
+  }
+  if (bounds.isValid()) map.fitBounds(bounds.pad(0.15), { maxZoom: 16 }); else map.setView([10.5, 105.5], 10);
+  $('msg').textContent = '';
+}
+
+map.on('click', e => {
+  click = [e.latlng.lat, e.latlng.lng];
+  if (clickMarker) layers.removeLayer(clickMarker);
+  clickMarker = L.circleMarker(click, { radius: 7, color: '#000', weight: 1, fillColor: '#ffd400', fillOpacity: 1 }).addTo(layers);
+  $('keeppt').disabled = false;
+  $('clickinfo').textContent = `Đã bấm: ${click[0].toFixed(5)}, ${click[1].toFixed(5)}`;
+});
+
+async function save(verdict) {
+  const it = items[idx];
+  const body = { site_id: it.site_id, verdict, note: $('note').value,
+    lat: verdict === 'keep_point' && click ? click[0] : '', lon: verdict === 'keep_point' && click ? click[1] : '' };
+  const r = await fetch('/answer', { method: 'POST', body: JSON.stringify(body) });
+  if (!r.ok) { $('msg').textContent = 'Lỗi lưu: ' + (await r.text()); return; }
+  answered[it.site_id] = await r.json();
+  next();
+}
+function next() { const j = items.findIndex((it, i) => i > idx && !answered[it.site_id]); idx = j >= 0 ? j : Math.min(idx + 1, items.length - 1); show(); }
+$('keep').onclick = () => save('keep');
+$('keeppt').onclick = () => save('keep_point');
+$('reject').onclick = () => save('reject');
+$('dup').onclick = () => save('duplicate');
+$('unsure').onclick = () => save('unsure');
+$('prev').onclick = () => { idx = Math.max(0, idx - 1); show(); };
+$('next').onclick = () => { idx = Math.min(items.length - 1, idx + 1); show(); };
+$('first').onclick = () => { const j = items.findIndex(it => !answered[it.site_id]); idx = j >= 0 ? j : 0; show(); };
+
+(async () => {
+  items = (await (await fetch('/items')).json()).items;
+  answered = await (await fetch('/answered')).json();
+  const j = items.findIndex(it => !answered[it.site_id]);
+  idx = j >= 0 ? j : 0;
+  show();
+})();
+</script>
+</body>
+</html>

@@ -3,10 +3,11 @@
 Usage: python src/reach_units.py
 Reads data/processed/{tien,hau}/{bank_positions,trends}.csv, data/tiles.json and the pre-2025 commune polygons
 data/raw/admin/communes_mekong.geojson (Kontur Boundaries VN 2023-06-28 from OpenStreetMap, ODbL). The bank point
-of a transect-side is its median position over the years (spikes left out). Branch bank points within DUP_M of
+of a transect-side is its median position over the years (spikes left out). Island-ring bank points within DUP_M of
 a main-channel bank point (the outer banks both measure) are dropped. Writes data/processed/units.csv:
-river (tien/hau), channel (river or its branch behind a cù lao, data/processed/<branch>/), transect, side,
-chainage_m (from where the centerline enters Vietnam, negative along a border river; along a branch, from its start),
+river (tien/hau), channel (the river, or a river island isl_* from data/processed/<island>/), transect, side
+(L/R looking downstream; I = island bank, O = opposite bank of the channel around an island), chainage_m (from
+where the centerline enters Vietnam, negative along a border river; round an island, along its channel ring),
 lon, lat, province, district, commune (empty = bank in Cambodia), in_scope (old An Giang, Dong Thap, Tien Giang =
 new An Giang and Dong Thap), unit_2km, unit_5km.
 """
@@ -21,7 +22,9 @@ from scipy.spatial import cKDTree
 from shapely.strtree import STRtree
 
 SCOPE = {'An Giang', 'Đồng Tháp', 'Tiền Giang'}
-DUP_M = 150.0   # a branch bank point this close to a main-channel bank point is the same bank (already measured)
+LANDWARD = 30.0   # commune looked up this far behind the bank point (Landsat banks sit ~10-20 m riverward;
+                  # an island commune's polygon stops at its shore)
+DUP_M = 150.0   # an island-ring bank point this close to a main-channel bank point is the same bank (already measured)
 
 
 def main():
@@ -30,12 +33,14 @@ def main():
     props = [f['properties'] for f in gj['features']]
     tree = STRtree(polys)
     cfg = json.loads(pathlib.Path('data/tiles.json').read_text())
-    channels = [('tien', 'tien'), ('hau', 'hau')] + [(b, v['parent']) for b, v in cfg.get('branches', {}).items()
-                                                      if pathlib.Path('data/processed', b, 'bank_positions.csv').exists()]
+    channels = [('tien', 'tien'), ('hau', 'hau')] + [(k, v['parent']) for k, v in cfg.get('islands', {}).items()
+                                                      if pathlib.Path('data/processed', k, 'bank_positions.csv').exists()]
     rows = []
     for channel, river in channels:
         bp = pd.read_csv(f'data/processed/{channel}/bank_positions.csv')
         bp = bp[bp.dist_m.notna() & ~bp.spike]
+        if 'chainage_m' not in bp:                     # an island ring: one tile, no stitching
+            bp = bp.assign(chainage_m=bp.transect * 100.0)
         g = bp.groupby(['transect', 'side']).agg(chainage_m=('chainage_m', 'first'), cx=('cx', 'first'),
                                                  cy=('cy', 'first'), nx=('nx', 'first'), ny=('ny', 'first'),
                                                  d=('dist_m', 'median')).reset_index()
@@ -43,8 +48,10 @@ def main():
         lon, lat = transform('EPSG:32648', 'EPSG:4326', g.bx.tolist(), g.by.tolist())
         g['lon'], g['lat'] = np.round(lon, 6), np.round(lat, 6)
         g['chainage_m'] = (g.chainage_m - cfg['border_m'].get(channel, 0)).round(1)
-        for _, r in g.iterrows():
-            p = Point(r.lon, r.lat)
+        llon, llat = transform('EPSG:32648', 'EPSG:4326', (g.cx + g.nx * (g.d + LANDWARD)).tolist(),
+                               (g.cy + g.ny * (g.d + LANDWARD)).tolist())
+        for (_, r), plon, plat in zip(g.iterrows(), llon, llat):
+            p = Point(plon, plat)
             hit = [i for i in tree.query(p) if polys[i].contains(p)]
             a = props[hit[0]] if hit else {}
             rows.append((river, channel, r.transect, r.side, r.chainage_m, r.lon, r.lat, r.bx, r.by, a.get('province'),
@@ -56,7 +63,7 @@ def main():
         main, br = u.channel == river, (u.river == river) & (u.channel != river)
         if br.any():
             dup[br.to_numpy()] = cKDTree(u.loc[main, ['bx', 'by']]).query(u.loc[br, ['bx', 'by']])[0] < DUP_M
-    print(f'branch bank points dropped as already measured on the main channel: {dup.sum()} of '
+    print(f'island-ring bank points dropped as already measured on the main channel: {dup.sum()} of '
           f'{(u.river != u.channel).sum()}')
     u = u[~dup].drop(columns=['bx', 'by'])
     u['in_scope'] = u.province.isin(SCOPE)

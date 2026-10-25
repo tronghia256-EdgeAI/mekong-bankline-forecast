@@ -81,6 +81,13 @@ Còn ghi nhận: 3 điểm nhiều mép ở Sa Đéc (T303R, T326L, T410R) lệc
 - Trước khi đóng băng protocol: quyết quy ước cù lao (12 dòng báo cáo nằm trên bờ đất liền sau cù lao, chủ yếu nhánh tây sông Tiền Phú Tân–Chợ Mới).
 - Hình bài báo (`src/figures.py` → `figures/`, PNG 300 dpi + SVG): vùng nghiên cứu, ví dụ phương pháp, tốc độ thay đổi bờ toàn tuyến, kiểm định.
 
+**Cập nhật P1 (25/10): quy ước cù lao (B) làm theo quy tắc, không chọn tay.**
+- Bốn nhánh chọn tay (24/10) bị thay: chúng được chọn theo chỗ có điểm báo cáo (làm lệch tập đơn vị của H3), bỏ sót cù lao Ông Hổ, và b1/b3b có 53%/71% chuỗi "đổi bậc" (chế độ sông hẹp không hợp nhánh rộng 400–600 m).
+- Quy tắc mới (`src/river_tiles.py`): mọi cù lao 1–150 km² là lỗ trong hệ thống sông nối liền (JRC ≥ 50%) → 11 cù lao (Tiền 7, Hậu 4), mỗi cù lao một ô ảnh. `banklines.island_geometry`: đường giữa các lạch quanh đảo (đường trung tuyến giữa đảo và mọi vùng đất khác), đo hai phía: I = bờ cù lao, O = bờ bên kia của lạch. Cù lao dính đất liền qua lạch < ~90 m thì cắt theo đường viền JRC. Bờ trùng bờ dòng chính (< 150 m) bị loại trong `reach_units.py`. Đầu ra P0 trùng từng byte.
+- 11 cù lao: 2.663 bờ-transect có xu hướng (82% tuyến tính); "đổi bậc" nhiều ở cù lao gần biên giới (bồi lớn) và Long Khánh (lạch nhỏ bị bồi lấp) là thay đổi thật.
+- units.csv: trong phạm vi 6.641 điểm bờ, 400 đơn vị 2 km, 179 đơn vị 5 km, 125 xã. Inventory: 144 dòng trên bờ đã đo, 4 chưa có bờ (Long Bình trên sông Bình Di; 2 điểm ODV xa bờ; Bình Thạnh không rõ sông), 3 chưa khớp xã, 36 ngoài phạm vi.
+- Còn lại: 12 điểm bấm kiểm sai số bờ cù lao, chủ đề tài duyệt inventory (151 dòng), nhãn vệ tinh, biến phụ trợ, đóng băng protocol.
+
 **Tạp chí** (SJR 2025, đều Q1; giá lấy từ danh sách APC của Elsevier ngày 5/10/2026):
 - **Chính: NHESS** (SJR 1,418). Hợp nhất với câu chuyện độ phủ và nguồn nhãn của bản đồ nguy cơ. Phí 1.800 €, được miễn nếu Việt Nam thuộc Research4Life; phải xác nhận trên research4life.org trước khi nộp.
 - **Dự phòng 1: Geomorphology** (SJR 1,003). Đăng miễn phí theo đường subscription.

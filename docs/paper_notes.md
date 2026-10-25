@@ -1,7 +1,8 @@
 # Paper notes: figures, key numbers and decisions for the manuscript
 
 Working notes for drafting (NHESS). Updated as results come in; every number here has a file behind it.
-Status date: 2026-10-22. Numbers marked (P1, pending branches) change once the cù lao branches are added.
+Status date: 2026-10-25. Main-channel figures and accuracy numbers are from 22/10; river islands (cù lao) are
+measured all round by rule since 25/10 (the hand-picked branches of 22-24/10 were replaced).
 
 ## Figures (manuscript set, `python src/figures.py`)
 
@@ -27,16 +28,21 @@ Measurement (P0, `results/p0/sadec_caolanh_sensor_check.md`):
 - SIWRR check (Bình Hàng Trung left bank, T255–315): −15.4, −45.7, −14.6, −30.6 ha vs −30.0, −41.5, −11.5, −23.0; total −106.3 vs −106.0 ha (`results/p0/sadec_caolanh_siwrr_check.md`).
 - Detectability (sadec, linear transects, change > 2 × 3.6 m): ~8–9% at 1 yr, 25% at 3 yr, 40% at 5 yr → forecast horizon 3–5 yr.
 
-Coverage (P1, pending branches; `src/stitch.py`, `results/p1/tile_check.md`):
+Coverage (P1, main-channel checks of 22/10; `src/stitch.py`, `results/p1/tile_check.md`):
 - Tiền 1,141 transects (in Vietnam) over ~127 km, 85% linear; Hậu 1,360 over ~146 km, 95% linear (incl. narrow reach above Châu Đốc).
 - Stitched vs P0 reaches: median |diff| 0.9–5.7 m, |rate diff| 0.05–0.23 m/yr. Narrow vs normal mode on overlap: median diff 0.0 m, |diff| 3.7 m, 90% ≤ 15 m.
+- River islands (25/10): 11 islands of 1–150 km² found by rule (holes of the connected river system in JRC ≥ 50%),
+  each measured all round from a medial channel ring (island bank I, opposite bank O); ring banks within 150 m of a
+  main-channel bank dropped. 2,663 ring transect-sides with a trend, 82% linear. In scope (new An Giang + Đồng
+  Tháp): 6,641 bank points, 400 units of 2 km, 179 of 5 km, 125 communes (`data/processed/units.csv`).
 
 Accuracy vs hand clicks (Esri Wayback, final stitched product; `figures/fig04_validation`):
 - Tiền n = 55, RMSE 33 m; Hậu wide n = 12, RMSE 19 m; Hậu narrow n = 13, RMSE 30 m. Typical bias −10 to −20 m (Landsat bank riverward; wet-season imagery). Stable single-edge banks ~10–15 m.
 - Known outlier types: multi-edge banks (vegetated strip/bar in front of ponds, ~100 m), transient riverward objects (T417L 2021–22), sharp bends and canal mouths (narrow reach).
 
-Reported inventory (P1 draft, `data/hotspots/inventory_draft.csv`): 158 G3 + 23 new (quote-verified 23/23) + 9 ODV
-points; 133 on measured banks, 15 on unmeasured banks (12 behind cù lao), 3 unmatched, 36 out of scope.
+Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
+(quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
+Owner review pending (`src/inventory_server.py`, 151 rows).
 
 ## Method decisions (with dates)
 
@@ -46,7 +52,7 @@ points; 133 on measured banks, 15 on unmeasured banks (12 behind cù lao), 3 unm
 - Full rivers (P1): coarse JRC least-cost centerlines, 15 overlapping 30 km tiles, other river masked per tile (Vàm Nao), stitched by chainage; L/R looking downstream.
 - Narrow mode (Hậu above Châu Đốc, width ~200 m; owner chose 22/10): canal filter ~90 m, no open-river core, smoothing 15 px, 1 km corridor.
 - Border: bank points outside Vietnamese communes dropped (Hậu is a border river at An Phú).
-- Cù lao convention (owner chose B, 22/10): also measure mainland and island banks along secondary branches (Tiền west branch along Phú Tân; loop at Long Hòa; both channels around cù lao Giêng), narrow mode, duplicates within 150 m of main-channel banks dropped.
+- Cù lao convention (owner chose B, 22/10; implemented by rule 25/10): every river island of 1–150 km² is measured all round (island bank and the opposite bank of each channel around it), so the unit set does not depend on where reports exist; duplicates within 150 m of main-channel banks dropped.
 - H3 at reach level, 2 km units (5 km sensitivity); inventory scope = new An Giang + Đồng Tháp (old AG, DT, Tiền Giang).
 
 ## Data sources and licences (for Data availability)

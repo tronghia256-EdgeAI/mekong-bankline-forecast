@@ -26,9 +26,11 @@ import numpy as np
 import pandas as pd
 import rasterio
 from scipy import ndimage
+from matplotlib.path import Path
 from scipy.spatial import cKDTree
 from scipy.stats import theilslopes
 from skimage.filters import threshold_otsu
+from skimage.measure import find_contours
 from skimage.morphology import binary_closing, binary_opening, disk, skeletonize
 
 SPACING, HALF, STEP = 100.0, 3000.0, 5.0   # transect spacing, half-length, sample step (m)
@@ -45,6 +47,7 @@ MAX_NODATA = 0.02                           # drop composites with more missing 
 MIN_YEARS = 15
 EIGHT = np.ones((3, 3), bool)
 TILES = pathlib.Path('data/tiles.json')        # P1 tiles of the full rivers (river_tiles.py)
+ISL_SMOOTH = 7                              # island channel ring: moving-average window (30 m px)
 NARROW_CORRIDOR = 1000.0                    # narrow tiles: only water this near the coarse centerline (no long canals)
 
 
@@ -144,12 +147,9 @@ def own_river(reach, shape, tf):
         return np.ones(shape, bool)
     xy = to_xy(np.argwhere(np.ones(shape, bool)).astype(float), tf)
     d = {r: cKDTree(line).query(xy)[0].reshape(shape) for r, line in cfg['centerlines'].items()}
-    if t.get('branch'):   # a secondary channel: its own line against the other main rivers (not its parent)
-        own, parent = t['river'], t['parent']
-        d[own] = cKDTree(cfg['branches'][own]['line']).query(xy)[0].reshape(shape)
-        d.pop(parent)
-    else:
-        own = t['river']
+    if t.get('island'):   # the tile is already cut to the island + 3 km; masking more would enclose the river
+        return np.ones(shape, bool)        # and mainland_mask's hole filling would turn it into land
+    own = t['river']
     inside = np.all([d[own] < v for r, v in d.items() if r != own], axis=0)
     return inside & (d[own] <= NARROW_CORRIDOR) if t.get('narrow') else inside
 
@@ -211,6 +211,54 @@ def geometry(stack, tf, narrow=False):
     return xy, sides
 
 
+def island_geometry(stack, tf, poly):
+    """Channel ring around a river island and transect-sides toward the island (I) and away from it (O).
+    The ring is the medial line between the island and all other land in the >= 50%-of-years water mask (canals
+    < ~90 m opened away), so it runs down the middle of every channel around the island; on each side the bank is
+    the first mainland walking out from the ring (k0 = 0): the island's own bank inward, the opposite bank of the
+    channel outward. Same side tuple as geometry()."""
+    thr = [threshold_otsu(m[np.isfinite(m)]) for m in stack]
+    wet = np.array([binary_opening(binary_closing(np.nan_to_num(m, nan=-1) > t, disk(1)), disk(1))
+                    for m, t in zip(stack, thr)])
+    river = wet.mean(0) >= 0.5
+    H, W = river.shape
+    pix = to_xy(np.argwhere(np.ones((H, W), bool)).astype(float), tf)
+    inpoly = Path(poly).contains_points(pix).reshape(H, W)
+    lab, _ = ndimage.label(~river, structure=EIGHT)
+    isl = lab == np.bincount(lab[inpoly & ~river]).argmax()
+    if isl[[0, -1]].any() or isl[:, [0, -1]].any():   # joined to the land outside where a side channel narrows below
+        isl &= ndimage.binary_dilation(inpoly, iterations=3)   # ~90 m or is blocked: cut it at the JRC island outline
+    di = ndimage.distance_transform_edt(~isl)
+    do = ndimage.distance_transform_edt(river | isl)          # distance to any other land
+    ring = max(find_contours(np.where(river, di - do, np.where(isl, -1.0, 1.0)), 0), key=len)
+    xy = to_xy(ring, tf)
+    k = np.ones(ISL_SMOOTH) / ISL_SMOOTH
+    xy = np.column_stack([np.convolve(np.r_[xy[-ISL_SMOOTH:, i], xy[:, i], xy[:ISL_SMOOTH, i]], k, 'same')
+                          [ISL_SMOOTH:-ISL_SMOOTH] for i in (0, 1)])
+    seg = np.r_[0, np.cumsum(np.hypot(*np.diff(np.vstack([xy, xy[:1]]), axis=0).T))]
+    L = seg[-1]
+    st = np.arange(0, L - SPACING / 2, SPACING)
+    loop = np.vstack([xy, xy[:1]])
+    at = lambda s: np.column_stack([np.interp(s % L, seg, loop[:, 0]), np.interp(s % L, seg, loop[:, 1])])
+    c, t = at(st), at(st + 50) - at(st - 50)
+    nrm = np.column_stack([-t[:, 1], t[:, 0]]) / np.hypot(*t.T)[:, None]
+    r, cc = to_rc(c + 150 * nrm, tf)
+    ok = (r >= 0) & (r < H - 1) & (cc >= 0) & (cc < W - 1)
+    if isl[np.round(r[ok]).astype(int), np.round(cc[ok]).astype(int)].mean() < 0.5:
+        nrm = -nrm                                            # +normal points to the island
+    d = np.arange(0, HALF + STEP, STEP)
+    sides = []
+    for i in range(len(st)):
+        for side, sgn in (('I', 1), ('O', -1)):
+            pts = c[i] + sgn * d[:, None] * nrm[i]
+            rr, ccc = to_rc(pts, tf)
+            ri, ci = np.round(rr).astype(int), np.round(ccc).astype(int)
+            if not ((ri >= 0) & (ri < H) & (ci >= 0) & (ci < W)).all():
+                continue
+            sides.append((i, side, c[i, 0], c[i, 1], nrm[i, 0] * sgn, nrm[i, 1] * sgn, rr, ccc, ri, ci, 0, np.inf))
+    return np.vstack([xy, xy[:1]]), sides
+
+
 def positions(m, sides):
     """Bank distance from the centerline (m) per transect-side for one composite (own Otsu threshold)."""
     t = threshold_otsu(m[np.isfinite(m)])
@@ -240,7 +288,11 @@ def main():
     reach = sys.argv[1]
     years, stack, tf = load(reach)
     thr = np.array([threshold_otsu(m[np.isfinite(m)]) for m in stack])
-    xy, sides = geometry(stack, tf, narrow=bool((tile(reach)[1] or {}).get('narrow')))
+    cfg, t = tile(reach)
+    if t and t.get('island'):
+        xy, sides = island_geometry(stack, tf, np.array(cfg['islands'][reach]['polygon']))
+    else:
+        xy, sides = geometry(stack, tf, narrow=bool((t or {}).get('narrow')))
     pos = pd.concat({y: positions(m, sides) for y, m in zip(years, stack)}, names=['year']).reset_index()
     meta = pd.DataFrame([s[:6] for s in sides], columns=['transect', 'side', 'cx', 'cy', 'nx', 'ny'])
     df = meta.merge(pos, on=['transect', 'side']).sort_values(['transect', 'side', 'year'])
@@ -287,7 +339,7 @@ def main():
         print(f'horizon {h} yr: share of linear with |rate|*h > 2*scale = {(ok.lrr.abs() * h > 2 * ok.sd_res).mean():.0%}'
               f', > 2*{NOISE_M} m measured noise = {(ok.lrr.abs() * h > 2 * NOISE_M).mean():.0%}')
 
-    figs = pathlib.Path('results/p1/tiles' if reach.split('_')[0] in ('tien', 'hau') else 'results/p0')   # P1 tile quick-looks
+    figs = pathlib.Path('results/p1/tiles' if reach.split('_')[0] in ('tien', 'hau', 'isl') else 'results/p0')   # P1 tile quick-looks
     figs.mkdir(parents=True, exist_ok=True)
     H, W = stack.shape[1:]
     ext = (tf.c, tf.c + W * tf.a, tf.f + H * tf.e, tf.f)

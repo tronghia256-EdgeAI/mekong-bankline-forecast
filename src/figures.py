@@ -148,7 +148,7 @@ def study_area():
             ax.text(*lab, fontsize=7, color=INK2, style='italic', ha='center')
     for river, col in (('tien', ORANGE), ('hau', BLUE)):
         units = pd.read_csv('data/processed/units.csv')
-        first = units[(units.river == river) & units.province.notna()].chainage_m.min() + tiles['border_m'][river]
+        first = units[(units.channel == river) & units.province.notna()].chainage_m.min() + tiles['border_m'][river]
         xy = np.array(tiles['centerlines'][river])[max(int(first / 100), 0):]   # 100 m vertices, from the first VN bank
         lon, lat = transform('EPSG:32648', 'EPSG:4326', xy[:, 0], xy[:, 1])
         ax.plot(lon, lat, color=col, lw=1.6, solid_capstyle='round',
@@ -319,8 +319,10 @@ def change():
     lim = 10
     border = json.loads(pathlib.Path('data/tiles.json').read_text())['border_m']
     for k, river in enumerate(('tien', 'hau')):
-        vn = pd.read_csv('data/processed/units.csv').query('river == @river and province.notna()')[['transect', 'side']]
-        tr = pd.read_csv(f'data/processed/{river}/trends.csv').merge(vn, on=['transect', 'side'])   # banks in Vietnam
+        # Branches reuse transect ids; these panels show only the main channel.
+        vn = pd.read_csv('data/processed/units.csv').query('channel == @river and province.notna()')[['transect', 'side']]
+        tr = pd.read_csv(f'data/processed/{river}/trends.csv').merge(
+            vn, on=['transect', 'side'], validate='one_to_one')   # banks in Vietnam
         bp = pd.read_csv(f'data/processed/{river}/bank_positions.csv')
         d = bp[bp.dist_m.notna() & ~bp.spike].groupby(['transect', 'side']).dist_m.median().rename('d')
         tr = tr.join(d, on=['transect', 'side'])
