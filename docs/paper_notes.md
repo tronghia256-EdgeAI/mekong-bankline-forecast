@@ -33,11 +33,11 @@ Coverage (P1, main-channel checks of 22/10; `src/stitch.py`, `results/p1/tile_ch
 - Stitched vs P0 reaches: median |diff| 0.9–5.7 m, |rate diff| 0.05–0.23 m/yr. Narrow vs normal mode on overlap: median diff 0.0 m, |diff| 3.7 m, 90% ≤ 15 m.
 - River islands (25/10): 11 islands of 1–150 km² found by rule (holes of the connected river system in JRC ≥ 50%),
   each measured all round from a medial channel ring (island bank I, opposite bank O); ring banks within 150 m of a
-  main-channel bank dropped. 2,663 ring transect-sides with a trend, 82% linear. In scope (new An Giang + Đồng
-  Tháp): 6,641 bank points, 400 units of 2 km, 179 of 5 km, 125 communes (`data/processed/units.csv`).
+  main-channel bank dropped. 2,472 ring transect-sides with a trend, 82% linear. In scope (new An Giang + Đồng
+  Tháp): 6,635 bank points, 399 units of 2 km, 178 of 5 km, 125 communes (`data/processed/units.csv`).
 
 Accuracy vs hand clicks (Esri Wayback, final stitched product; `figures/fig04_validation`):
-- Tiền n = 55, RMSE 33 m; Hậu wide n = 12, RMSE 19 m; Hậu narrow n = 13, RMSE 30 m. Typical bias −10 to −20 m (Landsat bank riverward; wet-season imagery). Stable single-edge banks ~10–15 m.
+- Tiền n = 55, RMSE 33 m; Hậu wide n = 12, RMSE 19 m; Hậu narrow n = 13, RMSE 30 m; river-island channels n = 11, RMSE 14 m, median |err| 9 m (`results/p1/islands_accuracy.md`; one of 12 clicks fell on a channel narrower than the canal filter and is now a non-detection). Typical bias −10 to −20 m (Landsat bank riverward; wet-season imagery). Stable single-edge banks ~10–15 m.
 - Known outlier types: multi-edge banks (vegetated strip/bar in front of ponds, ~100 m), transient riverward objects (T417L 2021–22), sharp bends and canal mouths (narrow reach).
 
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
@@ -48,6 +48,7 @@ Owner review pending (`src/inventory_server.py`, 151 rows).
 
 - Water index: MNDWI, Landsat 5/7/8/9 C2 L2, dry season Jan 1–May 1 median, QA bits 1,3,4, 30 m UTM 48N; MNDWI clipped to [−1, 1]; Otsu per composite; composites with > 2% nodata dropped.
 - Bank = "from the mainland, the first water" (owner's definition, 22/10): walking out from the open river; islands > 1 km² count as mainland; canals < ~90 m do not cut the mainland; ponds filled; sub-pixel MNDWI crossing.
+- A bank found at the transect origin (centerline or island ring lying on the bank; channel narrower than the canal filter) is a non-detection (25/10; removed 1,448 sporadic rows in the narrow Hậu and 5% of island rows; P0 and Tiền outputs unchanged, Hậu 96% linear).
 - Trends: Theil–Sen per transect-side; reverting jumps > 150 m removed as spikes; kinds linear / step / non-linear (robust residual scale > 30 m).
 - Full rivers (P1): coarse JRC least-cost centerlines, 15 overlapping 30 km tiles, other river masked per tile (Vàm Nao), stitched by chainage; L/R looking downstream.
 - Narrow mode (Hậu above Châu Đốc, width ~200 m; owner chose 22/10): canal filter ~90 m, no open-river core, smoothing 15 px, 1 km corridor.

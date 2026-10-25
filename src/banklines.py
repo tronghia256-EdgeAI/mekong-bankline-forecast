@@ -270,6 +270,8 @@ def positions(m, sides):
         dist = np.nan
         mv = m[ri, ci]
         j = None if k0 is None else mainland_edge(wat[ri, ci], ml[ri, ci], k0)
+        if j == 0:                         # a bank at the transect origin is a failed detection (centerline or
+            j = None                       # island ring on the bank, channel narrower than the canal filter)
         if j is not None and np.isfinite(mv[min(k0, j):j + MIN_LAND + 1]).all():
             lo, hi = max(j - REFINE, 0), min(j + REFINE, len(d) - 1)
             v = ndimage.map_coordinates(m, [r[lo:hi + 1], c[lo:hi + 1]], order=1, cval=np.nan)

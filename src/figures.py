@@ -28,7 +28,7 @@ from tile_check import P0, match, project  # noqa: E402
 
 OUT = pathlib.Path('figures')
 COL1, COL2 = 8.3 / 2.54, 17.0 / 2.54
-BLUE, ORANGE, AQUA = '#2a78d6', '#eb6834', '#1baf7a'          # categorical slots 1-3
+BLUE, ORANGE, AQUA, YELLOW = '#2a78d6', '#eb6834', '#1baf7a', '#eda100'   # categorical slots 1-4
 INK, INK2, GRID = '#0b0b0b', '#52514e', '#d9d8d4'
 WATER = LinearSegmentedColormap.from_list('water', ['#ffffff', '#d3d2cd', '#8f8e89'])   # grey, so river lines carry colour
 RATE = LinearSegmentedColormap.from_list('rate', ['#184f95', '#6da7ec', '#c8c7c2', '#ec8a89', '#b52f2e'])
@@ -275,10 +275,11 @@ def clicks(reach, narrow=None):
 
 
 def validation():
-    fig, (a, b) = plt.subplots(1, 2, figsize=(COL2, COL2 * .4), gridspec_kw={'wspace': .32})
-    groups = [('Tien', [('sadec_caolanh', None), ('mythuan', None), ('tien', None)], BLUE),
-              ('Hau, wide', [('longxuyen', None), ('hau', False)], ORANGE),
-              ('Hau, narrow\n(above Châu Đốc)', [('hau', True)], AQUA)]
+    fig, (a, b) = plt.subplots(1, 2, figsize=(COL2, COL2 * .4), gridspec_kw={'wspace': .3, 'width_ratios': [1.35, 1]})
+    groups = [('Tien\nmain', [('sadec_caolanh', None), ('mythuan', None), ('tien', None)], BLUE),
+              ('Hau\nwide', [('longxuyen', None), ('hau', False)], ORANGE),
+              ('Hau\nnarrow', [('hau', True)], AQUA),
+              ('Island\nchannels', [('islands', None)], YELLOW)]   # groups apart on x and labelled
     labels = []
     rng = np.random.default_rng(0)
     for i, (name, reaches, col) in enumerate(groups):
@@ -298,7 +299,7 @@ def validation():
     x = np.arange(len(SIWRR))
     b.bar(x - .2, -np.array(list(SIWRR.values())), .38, color=INK2, label=f'SIWRR (Phong et al., 2022): {-sum(SIWRR.values()):.0f} ha')
     b.bar(x + .2, -np.array(list(ours.values())), .38, color=BLUE, label=f'This study: {-sum(ours.values()):.0f} ha')
-    b.set_xticks(x, list(SIWRR))
+    b.set_xticks(x, [k.replace('-', '–\n') for k in SIWRR])
     b.set_ylabel('Eroded area, left bank (ha)')
     chart_axes(b)
     b.grid(axis='x', visible=False)

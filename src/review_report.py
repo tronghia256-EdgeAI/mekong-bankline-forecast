@@ -69,7 +69,7 @@ def main():
         lines += ['', f'Verdict: no clicked items yet (median annual change {annual:.1f} m/yr).']
     text = '\n'.join(lines) + '\n'
     print(text)
-    out = pathlib.Path('results/p1' if reach in ('tien', 'hau') else 'results/p0')   # stitched P1 rivers
+    out = pathlib.Path('results/p1' if reach in ('tien', 'hau', 'islands') else 'results/p0')   # stitched P1 rivers
     out.mkdir(parents=True, exist_ok=True)
     (out / f'{reach}_accuracy.md').write_text(text, encoding='utf-8')
 
