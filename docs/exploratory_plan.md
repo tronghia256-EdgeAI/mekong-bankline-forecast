@@ -26,3 +26,22 @@ do warnings precede measured retreat?
 - Timing: for dated reported rows, measured unit-year retreat events (`sat_events_2km.csv`, years 2012 and 2024
   excluded as noisier) before, in and after the reported year; relative frequency of events in units warned vs not
   warned in the following 1-3 years.
+
+## C. Visual check of B on high-resolution imagery (planned 2026-10-26, before sampling or viewing)
+
+Added after B was run (and after the island-duplicate fix, protocol deviation 5), before any unit was drawn or looked at.
+Question: are the satellite-eroding units that were never reported real bank loss on high-resolution imagery, and is
+the "reported but no measurable retreat" share explained by bank protection (embankments, revetments)?
+- Sample (2 km units of H3 after deviation 5; random draws with seed 0): all never-reported satellite-eroding units
+  (E_om, 12); 12 of the reported satellite-eroding units (E_rep); 24 of the reported units below the 9.3 m floor (N_rep);
+  12 of the never-reported units below the floor (N_non). 60 units, shown in random order (seed 0) with a neutral id
+  only, so the reviewer (the owner) does not know the group.
+- For each unit, the earliest and the latest Esri World Imagery Wayback release side by side (the reviewer may pick
+  other releases; capture dates recorded), with the unit's median bank points marked (no satellite bank lines). Two
+  questions: (Q1) bank loss between the two images: clear / possible / none / cannot tell; (Q2) bank protection
+  (revetment, embankment, pile or gabion line) on the latest image: yes / partly / no / cannot tell.
+- Reported (shares with exact binomial 95% CIs, no tests): Q1 "clear" (and "clear or possible") by group, i.e. how many
+  omitted units are confirmed and the false-alarm share in the below-floor groups; Q2 "yes or partly" in N_rep vs N_non;
+  share of N_rep with neither visible loss nor protection.
+- Limits stated: one reviewer; Wayback capture dates differ by place (earliest often 2010-2016); 2D imagery shows a
+  revetment but not its age relative to the window; small n.
