@@ -192,7 +192,18 @@ def agree():
             x, y = b[f'{q}_1'].isin(pos), b[f'{q}_2'].isin(pos)
             k = cohen_kappa_score(x, y) if x.nunique() + y.nunique() > 2 else float('nan')
             L.append(f'| {q} ({"/".join(sorted(pos))} vs not) | {len(b)} | {100 * (x == y).mean():.0f}% | {k:.2f} |')
-        L += ['', f'Rater 2 answered {len(a)} of 60 units.', '']
+        key = pd.read_csv(vc / 'key.csv')[['id', 'group']]
+        a = a.merge(key, on='id')
+        L += ['', f'Rater 2 answered {len(a)} of 60 units.', '',
+              '| group (plan C) | rater 1 clear loss | rater 2 clear loss |', '|---|---|---|']
+        for g, x in a.groupby('group'):
+            c = [f'{(x[q] == "clear").sum()}/{(x[q] != "cannot_tell").sum()}' for q in ('q1_loss_1', 'q1_loss_2')]
+            L.append(f'| {g} | {c[0]} | {c[1]} |')
+        for r, f in (('rater 1', 'answers.csv'), ('rater 2', 'answers_rater2.csv')):
+            t = pd.to_datetime(last(vc / f).timestamp).sort_values()
+            L.append(f'\n{r}: answers from {t.min():%H:%M} to {t.max():%H:%M} ({(t.max() - t.min()).total_seconds() / 60:.0f} '
+                     f'min; median {t.diff().dt.total_seconds().median():.0f} s between answers).')
+        L += ['']
     if (R2 / 'accuracy_review.csv').exists():
         key = pd.read_csv(R2 / 'key.csv')
         r2 = last(R2 / 'accuracy_review.csv').merge(key, on='id')

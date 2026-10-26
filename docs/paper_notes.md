@@ -157,8 +157,11 @@ P4 post hoc analyses (26/10, owner approved; plan `docs/p4_posthoc_plan.md` comm
   87.3 m). So conformal adds the guarantee, not better intervals; conditioning on past rate adds more.
 - PH3 permutation within channel group (10 000): omission obs 27.9% vs null median 25.6% [14.0, 39.5]; commission 77.3% vs
   78.5% [76.2, 81.2]; gap −3.4 vs 1.4 [−8.2, 12.5] -> all consistent with independence.
-- PH4 second rater: tools ready (`python -B src/visual_check.py serve 8781 rater2`; `python src/p4_posthoc.py rater2-sample`
-  done, 20 items; `python -I src/review_server.py rater2_clicks 8767`); results pending -> `python src/p4_posthoc.py agree`.
+- PH4 second rater (Nguyễn Việt Nam, 26/10 17:47-18:02; `results/p4/rater2.md`): visual check Q1 clear vs not agreement 50/57
+  (88%), kappa 0.75; Q2 protection: no one saw any (100%, kappa undefined). Rater 2 clear loss: E_om 8/11 (r1 9/11), E_rep 10/11
+  (10/11), N_rep 3/23 (6/23), N_non 0/12 (1/12) -> more conservative; the 'reports catch short failures' hint rests mainly on
+  rater 1. Clicks: 20/20, 15 pairs on the same capture date, between raters RMSE 3 m, median 1 m; Landsat vs r1 20 m, vs r2 21 m.
+  Rater 2 took 8 min for 60 units (median 7 s per answer) vs rater 1 39 min (15 s).
 - Title changed 26/10 (owner): "Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as
   hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta".
 
