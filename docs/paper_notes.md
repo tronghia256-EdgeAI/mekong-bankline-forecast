@@ -147,6 +147,21 @@ manuscript: linear-only split h = 3 is 96.0% [94.6, 97.1] and raw-target split 9
 swapped as 90.0 / 96.0). H3 2×2: P(sat+ | rep+) 31/260 = 11.9%, P(sat+ | rep−) 12/83 = 14.5%, odds ratio 0.80. Under independence
 omission would be 24% (observed 28%) and the below-floor share 78% (observed 77% reported, 81% unreported).
 
+P4 post hoc analyses (26/10, owner approved; plan `docs/p4_posthoc_plan.md` committed before running, af64f18;
+`python src/p4_posthoc.py run` -> `results/p4/posthoc.md`; GBT refit reproduces stored forecasts to 0.0005 m):
+- PH1a Mondrian by past rate (classes < 2, 2–5, 5–10, ≥ 10 m/yr): h = 3 pooled 92.8% [90.7, 94.6], width 44.1 m (split 49.4),
+  Winkler 91.9 (103.5); rate > 10 m/yr 86.1% [83.2, 88.7] (split 60.2); criterion missed only because < 1 m/yr is 95.2%.
+  h = 5: pooled 90.5%, width 66.3 m (84.8), rate classes 86.7–92.5% -> criterion MET; > 10 m/yr 90.0%.
+- PH1b normalised scores under-cover (76.5% h = 3, 83.7% h = 5): difficulty shifts between calibration and test (like CQR).
+- PH2a robust-scale Gaussian 80.3% (both h); PH2b empirical OOF 5–95% 93.7% / 92.2% (close to split conformal; widths 56.7 /
+  87.3 m). So conformal adds the guarantee, not better intervals; conditioning on past rate adds more.
+- PH3 permutation within channel group (10 000): omission obs 27.9% vs null median 25.6% [14.0, 39.5]; commission 77.3% vs
+  78.5% [76.2, 81.2]; gap −3.4 vs 1.4 [−8.2, 12.5] -> all consistent with independence.
+- PH4 second rater: tools ready (`python -B src/visual_check.py serve 8781 rater2`; `python src/p4_posthoc.py rater2-sample`
+  done, 20 items; `python -I src/review_server.py rater2_clicks 8767`); results pending -> `python src/p4_posthoc.py agree`.
+- Title changed 26/10 (owner): "Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as
+  hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta".
+
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
 Owner review done 26/10 (`src/inventory_server.py`, 151 rows -> `data/hotspots/inventory_review.csv`; final table

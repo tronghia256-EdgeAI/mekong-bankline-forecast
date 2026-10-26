@@ -20,7 +20,7 @@ are not yet peer reviewed.
 | | Result | Source |
 |---|---|---|
 | H1, point forecasts | Not supported. Gradient boosting and Gaussian processes did not beat persistence at 3 or 5 years (test MAE 9.9 vs 9.3 m at 3 years). | [results/p2/forecast.md](results/p2/forecast.md) |
-| H2, 90 % intervals | Supported for pooled coverage. Split and Mondrian conformal intervals covered 92.4 % and 92.7 % at 3 years and 91.5 % at 5 years on the 2019–2024 test period. Coverage is marginal; it differs between channel types and is lower at fast-moving banks. | [results/p2/forecast.md](results/p2/forecast.md) |
+| H2, 90 % intervals | Supported for pooled coverage. Split and Mondrian conformal intervals covered 92.4 % and 92.7 % at 3 years and 91.5 % at 5 years on the 2019–2024 test period. Coverage is marginal: 97 % at stable banks, 60 % at banks retreating faster than 10 m/yr; a post hoc Mondrian calibration by past retreat rate raised the latter to 86 %. | [results/p2/forecast.md](results/p2/forecast.md) |
 | H3, label source | Not supported as specified. The reported label marks 76 % of the 2 km bank units and is unrelated to measured retreat (Cohen's κ = −0.01). | [results/p2/h3.md](results/p2/h3.md) |
 | Exploratory | 12 of 43 satellite-eroding units are absent from the public reports we retrieved; a blind check on high-resolution imagery confirmed land loss at 9 of 11 assessable cases. | [results/p2/explore_reporting.md](results/p2/explore_reporting.md), [results/p2/visual_check.md](results/p2/visual_check.md) |
 | Robustness | H2 unchanged when retreat is re-measured with Sentinel-2. H3 unchanged when reports are displaced 2–4 km. A 2010 deterministic forecast for the same banks missed by 29–152 m. | [results/p3/](results/p3/) |

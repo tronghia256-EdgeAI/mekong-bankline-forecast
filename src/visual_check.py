@@ -2,8 +2,9 @@
 
 Usage:
   python src/visual_check.py sample          -> data/processed/visual_check/{items.json, key.csv}
-  python src/visual_check.py serve [port]    -> http://localhost:8780 (src/visual_check_page.html);
-                                                answers appended to data/processed/visual_check/answers.csv
+  python src/visual_check.py serve [port] [rater]  -> http://localhost:8780 (src/visual_check_page.html); answers appended
+                                                to data/processed/visual_check/answers.csv (answers_<rater>.csv for a
+                                                second rater, P4 plan PH4; the first rater's answers are not shown)
   python src/visual_check.py report          -> results/p2/visual_check.md
 Groups (seed 0): E_om all never-reported satellite-eroding units; E_rep 12 reported eroding; N_rep 24 reported units
 below the 9.3 m floor; N_non 12 never-reported units below the floor. The page shows a neutral id only.
@@ -55,15 +56,16 @@ def sample():
     print(s.group.value_counts().to_string(), f'\n{len(s)} items -> {OUT}')
 
 
-def answered():
-    f = OUT / 'answers.csv'
+def answered(name='answers.csv'):
+    f = OUT / name
     if not f.exists():
         return {}
     with open(f, newline='', encoding='utf-8-sig') as fh:
         return {r['id']: r for r in csv.DictReader(fh)}
 
 
-def serve(port):
+def serve(port, rater=''):
+    name = f'answers_{rater}.csv' if rater else 'answers.csv'
     raw = (OUT / 'items.json').read_bytes()
     ids = {i['id'] for i in json.loads(raw)['items']}
     lock = threading.Lock()
@@ -84,7 +86,7 @@ def serve(port):
             elif path == '/items':
                 self.send(raw)
             elif path == '/answered':
-                self.send(json.dumps(answered()).encode())
+                self.send(json.dumps(answered(name)).encode())
             else:
                 self.send(b'not found', 'text/plain', 404)
 
@@ -99,7 +101,7 @@ def serve(port):
             except (KeyError, ValueError, TypeError, AssertionError) as e:
                 return self.send(json.dumps({'error': repr(e)}).encode(), code=400)
             with lock:
-                f = OUT / 'answers.csv'
+                f = OUT / name
                 new = not f.exists()
                 with open(f, 'a', newline='', encoding='utf-8-sig') as fh:
                     w = csv.DictWriter(fh, COLS)
@@ -112,7 +114,7 @@ def serve(port):
         def log_message(self, *args):
             pass
 
-    print(f'{len(ids)} items, {len(answered())} answered -> http://localhost:{port}  (Ctrl+C to stop)', flush=True)
+    print(f'{len(ids)} items, {len(answered(name))} answered ({name}) -> http://localhost:{port}  (Ctrl+C to stop)', flush=True)
     http.server.ThreadingHTTPServer(('127.0.0.1', port), H).serve_forever()
 
 
@@ -163,6 +165,6 @@ if __name__ == '__main__':
     if cmd == 'sample':
         sample()
     elif cmd == 'serve':
-        serve(int(sys.argv[2]) if len(sys.argv) > 2 else 8780)
+        serve(int(sys.argv[2]) if len(sys.argv) > 2 else 8780, sys.argv[3] if len(sys.argv) > 3 else '')
     else:
         report()
