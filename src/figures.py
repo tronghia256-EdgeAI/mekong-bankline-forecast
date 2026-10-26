@@ -152,7 +152,7 @@ def study_area():
         xy = np.array(tiles['centerlines'][river])[max(int(first / 100), 0):]   # 100 m vertices, from the first VN bank
         lon, lat = transform('EPSG:32648', 'EPSG:4326', xy[:, 0], xy[:, 1])
         ax.plot(lon, lat, color=col, lw=1.6, solid_capstyle='round',
-                label=f'{"Tien" if river == "tien" else "Hau"} River, analysed reach ({xy.shape[0] * .1:.0f} km)')
+                label=f'{"Tien" if river == "tien" else "Hau"} River, analysed reach')
     from gee_water import REACHES
     for n, (k, name) in enumerate(P0_REACHES.items(), 1):
         x0, y0, x1, y1 = REACHES[k]

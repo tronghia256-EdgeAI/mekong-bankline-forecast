@@ -84,8 +84,9 @@ numbers after the island-duplicate correction, deviation 5):
 - C, visual check (plan C, committed before sampling, dbbe527): 60 units (12 E_om, 12 E_rep, 24 N_rep, 12 N_non), blind owner
   review on Wayback old vs new imagery (`src/visual_check.py`, `results/p2/visual_check.md`; 60/60 answered 26/10; imagery
   median 2010-05 vs 2025-09, i.e. a longer span than the 2014→2023 label window). Exact 95% CIs.
-  - Omission confirmed: 9/11 never-reported eroding units show clear land loss (82% [48, 98]; 1 cannot tell); all 6 assessed
-    omitted units with 110–156 m retreat (Long Khánh A, Bình Hàng Tây / Bình Thạnh, An Hòa / An Bình A) clear. Owner notes: at
+  - Omission confirmed: 9/11 never-reported eroding units show clear land loss (82% [48, 98]; 1 cannot tell); of the 6
+    omitted units with 110–156 m retreat, all 5 assessable clear (Long Khánh A, Bình Hàng Tây / Bình Thạnh, An Hòa / An
+    Bình A); the sixth (V60, isl_tien_03_O_+000, 137 m) cannot tell (corrected 26/10 after internal review; was "all 6"). Owner notes: at
     Thường Phước 2 (tien_L_+004/+005) the loss is of a narrow strip in front of the mainland, not the mainland bank -> mainland
     bank loss 7/11 (64% [31, 89]).
   - Satellite label precision: 19/22 eroding-labelled units (reported or not) clear loss (86% [65, 97]); never-reported units
@@ -134,6 +135,17 @@ Interactive atlas `docs/atlas/` (Leaflet 1.9.4, static, 5.4 MB, EN/VI; `python s
 && python src/atlas_build.py`): annual banklines with year slider and reference year, 2 km retreat units with reported rows and
 sources, unreported eroding reaches with the visual check, 2027 forecast band, Theil–Sen rates. Hosted with GitHub Pages from
 /docs when the repository is made public (owner, 26/10).
+
+P4 internal review round 1 (26/10, `paper/review_round1.md`; post hoc, descriptive, no refit; `src/p4_review_checks.py` ->
+`results/p4/review_checks.md`): H2 coverage is marginal. Split GBT h = 3 by |Theil–Sen rate over the 10 yr before the origin|:
+< 1 m/yr 97.4% [96.4, 98.2], 1–2 95.1, 2–5 91.3, 5–10 81.1, > 10 m/yr 60.2% [57.3, 63.8] (Mondrian 62.3; h = 5 68.0); rows
+≥ 5 m/yr 71.9%; by kind linear 96.0, non-linear 72.0, step 65.8%. Zero-centred interval ±24.7 m covers 92.3% (h = 5 ±42.4 m:
+93.3%). By origin h = 3 91.8–93.4% (calibration overlap does not inflate coverage); h = 5 target 2019 81.5% [71.6, 88.5].
+Linear series among forecast transect sides 87% (Tiền 85, Hậu wide 97, Hậu narrow 95, islands 82%). Tiền clicks: 41 development
+(Sa Đéc–Cao Lãnh, used to choose the bank rule) RMSE 34 m; 14 independent (Mỹ Thuận + new Tiền) RMSE 29 m. Corrected in the
+manuscript: linear-only split h = 3 is 96.0% [94.6, 97.1] and raw-target split 93.4% [91.1, 95.3] (both fail; the draft had them
+swapped as 90.0 / 96.0). H3 2×2: P(sat+ | rep+) 31/260 = 11.9%, P(sat+ | rep−) 12/83 = 14.5%, odds ratio 0.80. Under independence
+omission would be 24% (observed 28%) and the below-floor share 78% (observed 77% reported, 81% unreported).
 
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
