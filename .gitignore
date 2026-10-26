@@ -18,3 +18,6 @@ papers/
 
 # Data release build (src/release.py)
 release/
+
+# Overleaf upload bundle (contains the Copernicus class files; built from paper/)
+paper/*.zip
