@@ -42,7 +42,8 @@
     <span style="border:2px solid #ffd400"></span>ranh giới xã khớp được &nbsp;
     <span style="background:#22d3ee;border-radius:50%"></span>bờ đã đo &nbsp;
     <span style="background:#e0245e;border-radius:50%"></span>tọa độ có sẵn &nbsp;
-    <span style="background:#ffd400;border-radius:50%"></span>điểm bạn bấm
+    <span style="background:#ffd400;border-radius:50%"></span>điểm bạn bấm<br>
+    Ranh giới vàng = xã cũ (trước sáp nhập 2025, OpenStreetMap). Tên xã in trên nền ảnh Esri chỉ đặt gần đúng, có thể lệch 1–2 km.
   </div>
   <div class="row">
     Câu hỏi: <b>bài viết có đúng là sạt lở bờ sông Tiền/Hậu (dòng chính hoặc bờ cù lao) ở xã này không?</b>
@@ -106,7 +107,9 @@ function show() {
     '</table><span class="muted">Nền vàng = cùng năm với dòng đang xem.</span>' : '';
   $('quotebox').innerHTML = it.quote ? `Trích nguyên văn:<blockquote>${esc(it.quote)}</blockquote>` : '';
   const urls = [it.source_url, ...String(it.source_ref || '').split(' | ')].filter((u, i, s) => u && u.startsWith('http') && s.indexOf(u) === i);
-  $('links').innerHTML = urls.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">Mở nguồn ${i + 1}</a>`).join(' · ');
+  const ts = String(it.source_date || '').replace(/-/g, '') || '2024';   // Wayback opens the snapshot closest to this date
+  $('links').innerHTML = urls.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">Mở nguồn ${i + 1}</a>
+    (<a href="https://web.archive.org/web/${esc(ts)}/${esc(u)}" target="_blank" rel="noopener">bản lưu</a>)`).join(' · ');
   const bounds = L.latLngBounds([]);
   for (const g of it.polygons) {
     const lyr = L.geoJSON(g, { style: { color: '#ffd400', weight: 2, fill: false } }).addTo(layers);

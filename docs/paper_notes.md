@@ -42,7 +42,13 @@ Accuracy vs hand clicks (Esri Wayback, final stitched product; `figures/fig04_va
 
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
-Owner review pending (`src/inventory_server.py`, 151 rows).
+Owner review done 26/10 (`src/inventory_server.py`, 151 rows -> `data/hotspots/inventory_review.csv`; final table
+`data/hotspots/inventory.csv` by `src/inventory_final.py`): 143 kept, 6 duplicates (same commune, year and place as another
+row; the commune-level warning merged into the specific event), 1 rejected (DT105: commune does not touch the Tien, site on
+a canal), 1 unsure (DT118: source says Xa Phuoc Thuan, Hong Ngu; no such commune in the admin data, unresolved).
+126 rows usable for labels (kept, on a measured bank, event year 2015-2024): 70 warned-reach lists, 42 news, 9 emergency
+decisions, 5 ODM 2018. Kept rows outside the window: RC116, DT101, DT112-117 (before 2015) and 4 ODV points (no year; static
+label only). Check for the Methods: the machine's "confidence" is source specificity, not truth; the owner rejected 1 of 151.
 
 ## Method decisions (with dates)
 

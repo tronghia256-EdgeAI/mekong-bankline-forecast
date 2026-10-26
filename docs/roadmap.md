@@ -87,7 +87,8 @@ Còn ghi nhận: 3 điểm nhiều mép ở Sa Đéc (T303R, T326L, T410R) lệc
 - 11 cù lao: 2.663 bờ-transect có xu hướng (82% tuyến tính); "đổi bậc" nhiều ở cù lao gần biên giới (bồi lớn) và Long Khánh (lạch nhỏ bị bồi lấp) là thay đổi thật.
 - units.csv: trong phạm vi 6.641 điểm bờ, 400 đơn vị 2 km, 179 đơn vị 5 km, 125 xã. Inventory: 144 dòng trên bờ đã đo, 4 chưa có bờ (Long Bình trên sông Bình Di; 2 điểm ODV xa bờ; Bình Thạnh không rõ sông), 3 chưa khớp xã, 36 ngoài phạm vi.
 - Sai số bờ cù lao (12 điểm bấm, `results/p1/islands_accuracy.md`): RMSE 14 m, trung vị |sai số| 9 m (n = 11; 1 điểm rơi vào lạch hẹp hơn bộ lọc kênh, nay là "không đo được"). Sửa chung: bờ nằm ngay tại điểm đầu transect = đo hỏng (bỏ 1.448 dòng rải rác ở sông Hậu hẹp, 5% dòng cù lao; P0 và sông Tiền không đổi).
-- Còn lại: chủ đề tài duyệt inventory (151 dòng), nhãn vệ tinh, biến phụ trợ, đóng băng protocol.
+- Chủ đề tài duyệt xong inventory 26/10 (151 dòng): giữ 143, trùng 6, loại 1, chưa chắc 1; 126 dòng dùng được cho nhãn (`data/hotspots/inventory.csv`, `src/inventory_final.py`).
+- Còn lại: xác định xã cho RC004, RC123, DT118; nhãn vệ tinh, biến phụ trợ, đóng băng protocol.
 
 **Tạp chí** (SJR 2025, đều Q1; giá lấy từ danh sách APC của Elsevier ngày 5/10/2026):
 - **Chính: NHESS** (SJR 1,418). Hợp nhất với câu chuyện độ phủ và nguồn nhãn của bản đồ nguy cơ. Phí 1.800 €, được miễn nếu Việt Nam thuộc Research4Life; phải xác nhận trên research4life.org trước khi nộp.
