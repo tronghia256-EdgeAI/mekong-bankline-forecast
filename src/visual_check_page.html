@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiểm tra đoạn bờ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; font: 14px/1.4 system-ui, sans-serif; background: #f4f4f2; color: #222; }
+  body { display: flex; }
+  #maps { flex: 1; display: flex; flex-direction: column; }
+  #bars, #wrap { display: flex; }
+  #wrap { flex: 1; }
+  #wrap > div { flex: 1; border-left: 2px solid #fff; }
+  .bar { flex: 1; padding: 4px 8px; font-size: 13px; }
+  .bar select { max-width: 60%; }
+  #panel { width: 300px; padding: 10px 14px; overflow-y: auto; box-sizing: border-box; }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  .row { margin: 10px 0; }
+  .muted { color: #666; font-size: 13px; }
+  .warn { color: #a34a00; font-size: 12px; }
+  button { font: inherit; padding: 5px 9px; margin: 2px 0; cursor: pointer; }
+  .opt button { display: block; width: 100%; text-align: left; border: 1px solid #bbb; background: #fff; border-radius: 4px; }
+  .opt button.on { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+  #save { background: #1a7f37; color: #fff; border: 0; border-radius: 4px; }
+  #save:disabled { background: #9bb8a2; cursor: default; }
+  textarea { width: 100%; box-sizing: border-box; height: 44px; font: inherit; }
+</style>
+</head>
+<body>
+<div id="maps">
+  <div id="bars">
+    <div class="bar"><b>Ảnh CŨ</b> <button class="o" data-s="0" data-d="1">◀</button><select id="rel0"></select><button class="o" data-s="0" data-d="-1">▶</button>
+      · chụp <b id="cap0">…</b> <span id="warn0" class="warn"></span></div>
+    <div class="bar"><b>Ảnh MỚI</b> <button class="o" data-s="1" data-d="1">◀</button><select id="rel1"></select><button class="o" data-s="1" data-d="-1">▶</button>
+      · chụp <b id="cap1">…</b> <span id="warn1" class="warn"></span></div>
+  </div>
+  <div id="wrap"><div id="m0"></div><div id="m1"></div></div>
+</div>
+<div id="panel">
+  <h1>Kiểm tra đoạn bờ 2 km</h1>
+  <div id="progress" class="muted"></div>
+  <div class="row"><b id="title"></b></div>
+  <div class="row muted">Chấm xanh = vị trí đoạn bờ cần xem (khoảng 2 km). Hai bản đồ di chuyển cùng nhau.
+    <label><input type="checkbox" id="hide"> ẩn chấm</label><br>
+    <button id="distinct" class="muted">Chỉ hiện các ảnh khác nhau ở đoạn này</button></div>
+  <div class="row"><b>1. So ảnh cũ với ảnh mới: bờ có bị lùi (mất đất) không?</b>
+    <div class="opt" id="q1">
+      <button data-v="clear">Lùi thấy rõ</button>
+      <button data-v="possible">Có thể lùi (không chắc)</button>
+      <button data-v="none">Không thấy lùi</button>
+      <button data-v="cannot_tell">Không xác định được (mây, ảnh mờ…)</button>
+    </div></div>
+  <div class="row"><b>2. Ảnh mới: đoạn bờ có kè / công trình bảo vệ bờ không?</b>
+    <div class="muted">bờ thẳng bằng đá hay bê tông, hàng cọc, rọ đá, bao cát…</div>
+    <div class="opt" id="q2">
+      <button data-v="yes">Có kè</button>
+      <button data-v="partly">Có kè một phần đoạn</button>
+      <button data-v="no">Không thấy kè</button>
+      <button data-v="cannot_tell">Không xác định được</button>
+    </div></div>
+  <div class="row">Ghi chú:<textarea id="note"></textarea></div>
+  <div class="row">
+    <button id="save" disabled>Lưu và sang đoạn sau</button><br>
+    <button id="prev" class="muted">← Đoạn trước</button>
+    <button id="next" class="muted">Đoạn sau →</button>
+  </div>
+  <div class="row muted" id="status"></div>
+</div>
+<script>
+const CONFIG = 'https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json';
+const $ = id => document.getElementById(id);
+const maps = [L.map('m0', { maxZoom: 20 }), L.map('m1', { maxZoom: 20, zoomControl: false })];
+const layers = maps.map(m => L.layerGroup().addTo(m));
+let items = [], last = {}, idx = 0, all = [], rel = [[], []], tiles = [null, null], cap = ['', ''], metaCache = {};
+let ans = { q1: null, q2: null }, syncing = false;
+
+maps.forEach((m, i) => m.on('move', () => {   // keep the two maps on the same view
+  if (syncing) return;
+  syncing = true; maps[1 - i].setView(m.getCenter(), m.getZoom(), { animate: false }); syncing = false;
+}));
+maps[0].on('zoomend', () => { if (item()) [0, 1].forEach(lookupDate); });
+
+function item() { return items[idx]; }
+function cur(s) { return rel[s][$('rel' + s).selectedIndex]; }
+
+function fill(s) { $('rel' + s).innerHTML = rel[s].map(r => `<option>${r.date}${r.cap ? ' · chụp ' + r.cap : ''}</option>`).join(''); }
+
+function tileOk(url) { return new Promise(ok => { const im = new Image(); im.onload = () => ok(true); im.onerror = () => ok(false); im.src = url; }); }
+
+async function nativeZoom(r) {   // deepest level with imagery here (older releases often stop at z17 or lower)
+  const [lat, lon] = item().center, key = 'z/' + r.num + '/' + lat + '/' + lon;
+  if (key in metaCache) return metaCache[key];
+  let best = 13;
+  for (let z = 18; z > 13; z--) {
+    const n = 2 ** z, x = Math.floor((lon + 180) / 360 * n), la = lat * Math.PI / 180;
+    const y = Math.floor((1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2 * n);
+    if (await tileOk(r.url.replace('{z}', z).replace('{y}', y).replace('{x}', x))) { best = z; break; }
+  }
+  return (metaCache[key] = best);
+}
+
+async function setRel(s, i) {
+  $('rel' + s).selectedIndex = Math.max(0, Math.min(rel[s].length - 1, i));
+  const r = cur(s), it = item(), nz = await nativeZoom(r);
+  if (r !== cur(s) || it !== item()) return;   // user moved on meanwhile
+  const old = tiles[s];
+  tiles[s] = L.tileLayer(r.url, { maxZoom: 20, maxNativeZoom: nz, keepBuffer: 4,
+    attribution: 'Esri World Imagery Wayback' }).addTo(maps[s]);
+  tiles[s].on('tileerror', e => {   // Wayback throttles bursts with transient 403s
+    const t = e.tile, n = (t.retry || 0) + 1;
+    if (n > 3) return;
+    t.retry = n;
+    setTimeout(() => { t.src = t.src.replace(/[?&]r=\d+$/, '') + (t.src.includes('?') ? '&' : '?') + 'r=' + n; }, 700 * n);
+  });
+  if (old) { const drop = () => { if (maps[s].hasLayer(old)) maps[s].removeLayer(old); }; tiles[s].once('load', drop); setTimeout(drop, 8000); }
+  lookupDate(s);
+}
+
+async function metaQuery(r, z) {
+  const [lat, lon] = item().center;
+  for (let layer = Math.min(13, Math.max(0, 23 - z)); layer <= 13; layer++) {
+    const key = [r.num, layer, lat, lon].join('/');
+    if (!(key in metaCache)) {
+      const q = new URLSearchParams({ f: 'json', where: '1=1', outFields: 'SRC_DATE2,NICE_DESC,SRC_RES',
+        geometry: `${lon},${lat}`, geometryType: 'esriGeometryPoint', inSR: '4326',
+        spatialRel: 'esriSpatialRelIntersects', returnGeometry: 'false' });
+      const j = await (await fetch(`${r.meta}/${layer}/query?${q}`)).json();
+      metaCache[key] = j.features && j.features.length ? j.features[0].attributes : null;
+    }
+    if (metaCache[key]) return metaCache[key];
+  }
+  return null;
+}
+
+async function lookupDate(s) {
+  const r = cur(s), it = item();
+  if (!r || !it) return;
+  cap[s] = ''; $('cap' + s).textContent = '…'; $('warn' + s).textContent = '';
+  let a = null;
+  try { a = await metaQuery(r, Math.round(maps[0].getZoom())); } catch (e) { }
+  if (r !== cur(s) || it !== item()) return;
+  if (!a || !a.SRC_DATE2) { $('cap' + s).textContent = 'không rõ'; return; }
+  cap[s] = new Date(a.SRC_DATE2).toISOString().slice(0, 10);
+  $('cap' + s).textContent = cap[s];
+  const m = +cap[s].slice(5, 7);
+  if (m >= 7 && m <= 11) $('warn' + s).textContent = '(mùa lũ: nước cao hơn)';
+}
+
+function draw() {
+  layers.forEach(g => g.clearLayers());
+  if ($('hide').checked) return;
+  for (const g of layers) for (const p of item().points)
+    L.circleMarker(p, { radius: 3, color: '#00e5ff', weight: 1, fillOpacity: .8 }).addTo(g);
+}
+
+function pick(q, v) {
+  ans[q] = v;
+  for (const b of $(q).children) b.classList.toggle('on', b.dataset.v === v);
+  $('save').disabled = !(ans.q1 && ans.q2);
+}
+
+function resetReleases() {
+  [0, 1].forEach(s => { all.forEach(r => delete r.cap); rel[s] = all; fill(s); });
+  $('distinct').disabled = false; $('distinct').textContent = 'Chỉ hiện các ảnh khác nhau ở đoạn này';
+}
+
+function show(i) {
+  idx = i; $('note').value = ''; $('status').textContent = '';
+  pick('q1', null); pick('q2', null);
+  if (rel[0] !== all) resetReleases();
+  $('progress').textContent = `Đoạn ${Math.min(idx + 1, items.length)} / ${items.length} · đã trả lời ${Object.keys(last).length}`;
+  if (idx >= items.length) { layers.forEach(g => g.clearLayers()); $('title').textContent = 'Xong. Cảm ơn!'; return; }
+  const it = item();
+  $('title').textContent = it.id + (last[it.id] ? ' (đã trả lời)' : '');
+  const prev = last[it.id];
+  if (prev) { pick('q1', prev.q1_loss); pick('q2', prev.q2_protection); $('note').value = prev.note || ''; }
+  maps[0].fitBounds(L.latLngBounds(it.points).pad(0.15));
+  draw();
+  setRel(0, all.length - 1);   // oldest release
+  setRel(1, 0);                // newest release
+}
+
+async function answer() {
+  const it = item(), r0 = cur(0), r1 = cur(1);
+  const body = { id: it.id, q1_loss: ans.q1, q2_protection: ans.q2, note: $('note').value,
+    old_release: r0.date, old_capture: cap[0], new_release: r1.date, new_capture: cap[1] };
+  $('status').textContent = 'Đang lưu…';
+  try {
+    const res = await fetch('/answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(await res.text());
+  } catch (e) { $('status').textContent = 'Lỗi lưu, thử lại: ' + e.message; return; }
+  last[it.id] = body;
+  show(idx + 1);
+}
+
+async function distinct() {
+  $('distinct').disabled = true;
+  const z = Math.round(maps[0].getZoom()), seen = new Map(), c0 = cur(0), c1 = cur(1), queue = all.slice();
+  let done = 0;
+  async function worker() {
+    while (queue.length) {
+      const r = queue.shift();
+      try { const a = await metaQuery(r, z); if (a && a.SRC_DATE2) r.cap = new Date(a.SRC_DATE2).toISOString().slice(0, 10); } catch (e) { }
+      $('distinct').textContent = `Đang tìm… ${++done} / ${all.length}`;
+    }
+  }
+  await Promise.all([1, 2, 3, 4, 5, 6].map(worker));
+  for (const r of all.slice().reverse()) if (r.cap && !seen.has(r.cap)) seen.set(r.cap, r);   // oldest release per date
+  const d = [...seen.values()].reverse();
+  [0, 1].forEach(s => { rel[s] = d; fill(s); });
+  const k0 = d.findIndex(r => r.cap === c0.cap), k1 = d.findIndex(r => r.cap === c1.cap);
+  setRel(0, k0 < 0 ? d.length - 1 : k0); setRel(1, k1 < 0 ? 0 : k1);
+  $('distinct').textContent = `${d.length} ảnh khác nhau ở đoạn này`;
+}
+
+[0, 1].forEach(s => { $('rel' + s).onchange = () => setRel(s, $('rel' + s).selectedIndex); });
+document.querySelectorAll('button.o').forEach(b => { b.onclick = () => setRel(+b.dataset.s, $('rel' + b.dataset.s).selectedIndex + +b.dataset.d); });
+for (const q of ['q1', 'q2']) for (const b of $(q).children) b.onclick = () => pick(q, b.dataset.v);
+$('hide').onchange = draw;
+$('save').onclick = answer;
+$('prev').onclick = () => { if (idx > 0) show(idx - 1); };
+$('next').onclick = () => { if (idx < items.length) show(idx + 1); };
+$('distinct').onclick = distinct;
+
+(async () => {
+  try {
+    const [its, an, cfg] = await Promise.all(['/items', '/answered', CONFIG].map(u => fetch(u).then(r => r.json())));
+    items = its.items; last = an;
+    all = Object.entries(cfg).map(([num, c]) => ({ num, meta: c.metadataLayerUrl,
+      date: (c.itemTitle.match(/\d{4}-\d{2}-\d{2}/) || [''])[0],
+      url: c.itemURL.replace('{level}', '{z}').replace('{row}', '{y}').replace('{col}', '{x}') }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  } catch (e) { $('status').textContent = 'Không tải được dữ liệu: ' + e.message; return; }
+  rel = [all, all]; fill(0); fill(1);
+  const first = items.findIndex(it => !last[it.id]);
+  show(first < 0 ? items.length : first);
+})();
+</script>
+</body>
+</html>

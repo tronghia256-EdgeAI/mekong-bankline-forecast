@@ -149,3 +149,16 @@ thresholds or units after seeing the H3 comparison.
    metres to 2 km (the spike filter catches only reverting jumps), which inflate RMSE and the Gaussian SD; (c) CQR
    at h = 3 under-covers because quantile widths shift with composite completeness between calibration origins
    (next to the incomplete 2010-2013 composites) and test origins. Any analysis addressing these is exploratory.
+5. 2026-10-26, data correction found after the P2 runs (by exploratory analysis B), applied to every analysis.
+   Adjacent river islands measured the bank between them twice: the opposite bank (O) of one island's channel ring
+   is the island bank (I) of its neighbour (pairs isl_tien_02/03, 05/06/07, 03/04; 253 in-scope bank points within 30 m
+   of a point on another island ring). `reach_units.py` dropped ring banks near main-channel banks but not near other
+   rings. Fix: an island-ring bank point within 60 m of a bank point of a lower-numbered island ring is dropped (60 m:
+   above 2 pixels of measurement difference, below the narrowest measured channel of ~90 m, chosen on geometry before
+   rerunning). 167 bank points removed; in scope 6,632 -> 6,465 bank points, 399 -> 390 units of 2 km, 178 -> 172 of 5
+   km; no cross-channel pair left within 60 m. Everything downstream rerun unchanged (labels, covariates, H1/H2, H3,
+   exploratory A/B). Before -> after: satellite positives 47/352 -> 43/343; H1 h = 3 persistence 9.9 -> 9.3 m, GBT 10.0
+   -> 9.9 m, difference +0.10 [-0.32, 0.62] -> +0.59 [0.23, 0.98] (not better either way); H2 h = 3 split / Mondrian
+   coverage 92.4 / 92.7 -> 92.4 / 92.7%, h = 5 91.9 / 91.8 -> 91.5 / 91.5%, CQR h = 3 70.8 -> 79.5% (fails either way);
+   H3 ΔAUC -0.09 [-0.33, 0.28] / -0.22 [-0.44, 0.06] -> -0.08 [-0.29, 0.25] / -0.20 [-0.40, 0.05]. No verdict changed.
+   The pre-correction outputs are in git history (commit acaf6be).

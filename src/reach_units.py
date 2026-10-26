@@ -4,7 +4,8 @@ Usage: python src/reach_units.py
 Reads data/processed/{tien,hau}/{bank_positions,trends}.csv, data/tiles.json and the pre-2025 commune polygons
 data/raw/admin/communes_mekong.geojson (Kontur Boundaries VN 2023-06-28 from OpenStreetMap, ODbL). The bank point
 of a transect-side is its median position over the years (spikes left out). Island-ring bank points within DUP_M of
-a main-channel bank point (the outer banks both measure) are dropped. Writes data/processed/units.csv:
+a main-channel bank point (the outer banks both measure) are dropped, and so are those within DUP_RING_M of a
+bank point of a lower-numbered island ring (adjacent islands measure the bank between them twice). Writes data/processed/units.csv:
 river (tien/hau), channel (the river, or a river island isl_* from data/processed/<island>/), transect, side
 (L/R looking downstream; I = island bank, O = opposite bank of the channel around an island), chainage_m (from
 where the centerline enters Vietnam, negative along a border river; round an island, along its channel ring),
@@ -25,6 +26,8 @@ SCOPE = {'An Giang', 'Đồng Tháp', 'Tiền Giang'}
 LANDWARD = 30.0   # commune looked up this far behind the bank point (Landsat banks sit ~10-20 m riverward;
                   # an island commune's polygon stops at its shore)
 DUP_M = 150.0   # an island-ring bank point this close to a main-channel bank point is the same bank (already measured)
+DUP_RING_M = 60.0   # same for two island rings: > 2 px of measurement difference, < the narrowest measured channel
+                    # (~90 m canal filter), so banks facing each other across a channel are never merged
 
 
 def main():
@@ -65,6 +68,18 @@ def main():
             dup[br.to_numpy()] = cKDTree(u.loc[main, ['bx', 'by']]).query(u.loc[br, ['bx', 'by']])[0] < DUP_M
     print(f'island-ring bank points dropped as already measured on the main channel: {dup.sum()} of '
           f'{(u.river != u.channel).sum()}')
+    # adjacent islands: ring O of one island can be the island bank I of its neighbour (26/10); keep the copy of the
+    # lower-numbered island
+    dup2 = np.zeros(len(u), bool)
+    kept = np.empty((0, 2))
+    for ch in sorted(c for c in u.channel.unique() if c.startswith('isl_')):
+        m = ((u.channel == ch) & ~dup).to_numpy()
+        xy = u.loc[m, ['bx', 'by']].to_numpy()
+        if len(kept):
+            dup2[np.flatnonzero(m)] = cKDTree(kept).query(xy)[0] < DUP_RING_M
+        kept = np.vstack([kept, xy[~dup2[m]]])
+    print(f'island-ring bank points dropped as already measured on another island ring: {dup2.sum()}')
+    dup |= dup2
     u = u[~dup].drop(columns=['bx', 'by'])
     u['in_scope'] = u.province.isin(SCOPE)
     for km in (2, 5):

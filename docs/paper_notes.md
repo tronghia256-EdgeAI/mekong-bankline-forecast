@@ -40,42 +40,46 @@ Coverage (P1, main-channel checks of 22/10; `src/stitch.py`, `results/p1/tile_ch
 - Stitched vs P0 reaches: median |diff| 0.9–5.7 m, |rate diff| 0.05–0.23 m/yr. Narrow vs normal mode on overlap: median diff 0.0 m, |diff| 3.7 m, 90% ≤ 15 m.
 - River islands (25/10): 11 islands of 1–150 km² found by rule (holes of the connected river system in JRC ≥ 50%),
   each measured all round from a medial channel ring (island bank I, opposite bank O); ring banks within 150 m of a
-  main-channel bank dropped. 2,472 ring transect-sides with a trend, 82% linear. In scope (new An Giang + Đồng
-  Tháp): 6,632 bank points, 399 units of 2 km, 178 of 5 km, 125 communes (`data/processed/units.csv`).
+  main-channel bank dropped, and (26/10, deviation 5) ring banks within 60 m of a lower-numbered island's ring bank
+  dropped (adjacent islands measured the bank between them twice; 167 points). In scope (new An Giang + Đồng
+  Tháp): 6,465 bank points, 390 units of 2 km, 172 of 5 km, 125 communes (`data/processed/units.csv`).
 
 Accuracy vs hand clicks (Esri Wayback, final stitched product; `figures/fig04_validation`):
 - Tiền n = 55, RMSE 33 m; Hậu wide n = 12, RMSE 19 m; Hậu narrow n = 13, RMSE 30 m; river-island channels n = 11, RMSE 14 m, median |err| 9 m (`results/p1/islands_accuracy.md`; one of 12 clicks fell on a channel narrower than the canal filter and is now a non-detection). Typical bias −10 to −20 m (Landsat bank riverward; wet-season imagery). Stable single-edge banks ~10–15 m.
 - Known outlier types: multi-edge banks (vegetated strip/bar in front of ponds, ~100 m), transient riverward objects (T417L 2021–22), sharp bends and canal mouths (narrow reach).
 
-P2 results (26/10, protocol-v1 + deviations 1-4; `results/p2/forecast.md`, `results/p2/h3.md`):
-- Sample: 6,342 transect-sides in 28 blocks of 10 km; h = 3 rows train 23,727 / calibration 16,540 / test 37,269 (h = 5: 19,775 / 11,205 / 37,236).
-- H1 NOT supported: test MAE persistence 9.9 m [7.7, 12.3] vs GBT 10.0 [8.1, 12.2] (diff +0.10 [−0.32, 0.62]) at h = 3; at h = 5 persistence 14.6 [10.9, 18.8] vs GBT 16.1 (GBT worse, +1.42 [0.19, 3.09]); GP 20.3 / 24.8; rate extrapolation (LRR 10 yr) 12.8 / 21.4 — worse than persistence. Median |retreat| 3.7 m: most banks move less than the noise over 3 yr.
-- H2 SUPPORTED for split / Mondrian / ACI conformal: pooled test coverage 92.4 / 92.7 / 92.4% at h = 3 (width ~50 m), 91.9 / 91.8 / 91.9% at h = 5 (~93 m); Gaussian 99.5% with widths 251 / 323 m (fails, over-covers: heavy-tailed targets); CQR 70.8% at h = 3 (fails; feature shift from incomplete 2010-2013 composites), 92.8% at h = 5. By group h = 3 split: Tiền 90.8, Hậu wide 97.9, Hậu narrow 96.3, islands 89.7%. At h = 5 Hậu wide under-covers (85.8 split, 83.8 Mondrian). Spatial leave-block-out h = 3: split 91.7%. ACI identical to split by construction (deviation 4a).
-- H3 NOT supported (logistic, 2 km): AUC trained on reported 0.44 (reported) / 0.54 (satellite); trained on satellite 0.49 / 0.71; ΔAUC −0.09 [−0.33, 0.28] and −0.22 [−0.44, 0.06]; tercile trend CIs include 0; all sensitivities fail. Exploratory: reported labels cover 75% of units (265/352) vs satellite 13% (47), agreement kappa −0.01 [−0.05, 0.03]; satellite retreat falls with built-up (Spearman −0.22 [−0.33, −0.09]; prevalence 24 / 13 / 3% by tercile).
+P2 results (26/10, protocol-v1 + deviations 1-5; numbers AFTER the island-duplicate correction, deviation 5; `results/p2/forecast.md`, `results/p2/h3.md`):
+- Sample: 6,177 transect-sides in 28 blocks of 10 km; h = 3 rows train 22,903 / calibration 16,049 / test 36,288 (h = 5: 19,127 / 10,792 / 36,255).
+- H1 NOT supported: test MAE persistence 9.3 m [7.4, 11.4] vs GBT 9.9 [8.2, 11.9] (GBT worse, +0.59 [0.23, 0.98]) at h = 3; at h = 5 persistence 13.6 [10.5, 17.0] vs GBT 15.2 (+1.62 [0.31, 3.24]); GP 15.5 / 23.0 (GP fit on a 1,000-row subsample is unstable: 20.3 before the correction); rate extrapolation (LRR 10 yr) 12.3 / 20.4 — worse than persistence. Most banks move less than the noise over 3 yr.
+- H2 SUPPORTED for split / Mondrian / ACI conformal: pooled test coverage 92.4 / 92.7 / 92.4% at h = 3 (width ~49 m), 91.5 / 91.5 / 91.5% at h = 5 (~85 m); Gaussian 99.5% with widths 246 / 314 m (fails, over-covers: heavy-tailed targets); CQR 79.5% at h = 3 (fails; feature shift from incomplete 2010-2013 composites), 93.0% at h = 5. By group h = 3 split: Tiền 90.5, Hậu wide 97.9, Hậu narrow 96.2, islands 90.1%. At h = 5 Hậu wide under-covers (84.7 split, 83.7 Mondrian). Spatial leave-block-out h = 3: split 92.3%. ACI identical to split by construction (deviation 4a).
+- H3 NOT supported (logistic, 2 km): AUC trained on reported 0.50 (reported) / 0.57 (satellite); trained on satellite 0.52 / 0.72; ΔAUC −0.08 [−0.29, 0.25] and −0.20 [−0.40, 0.05]; tercile trend CIs include 0; all sensitivities fail. Exploratory: reported labels cover 76% of units (260/343) vs satellite 13% (43), agreement kappa −0.01 [−0.05, 0.02]; satellite retreat falls with built-up (Spearman −0.20 [−0.32, −0.07]; prevalence 22 / 12 / 3% by tercile).
+- Before the correction (commit acaf6be): 6,342 transect-sides; H1 9.9 vs 10.0 m; H2 92.4 / 92.7% (h = 3), 91.9 / 91.8% (h = 5); CQR h = 3 70.8%; H3 ΔAUC −0.09 / −0.22; 47/352 satellite positives. No verdict changed (protocol deviation 5).
 
-EXPLORATORY after P2 (26/10, planned in `docs/exploratory_plan.md` before running; no verdicts; CIs 10 km block bootstrap):
-- A, horizon (`results/p2/explore_horizon.md`): change above the noise floor (σ 3.6 m) for 27% [23, 32] of bank points at 1 yr,
-  38% [33, 43] at 3 yr, 49% [43, 54] at 5 yr, 63% [58, 68] at 10 yr (h3: Tiền 40, Hậu wide 21, Hậu narrow 30, islands 44%;
-  σ 4.7 m about 7 points lower). Rolling-origin MAE persistence / Theil–Sen 10 yr / Theil–Sen all / GBT: h1 3.9 / 4.4 / 5.3 / 3.0;
-  h3 9.9 / 12.8 / 15.0 / 9.7; h5 14.6 / 21.4 / 25.2 / 15.6; h7 18.0 / 30.1 / 34.7 / 18.7 m. GBT − persistence: h1 −0.90 [−1.14,
-  −0.69], h2 −0.37 [−0.72, −0.05] (artefact: the centred target contains known origin noise), h3 −0.23 [−0.70, 0.30], h5 +0.97
-  [0.10, 1.85]. Theil–Sen never beats persistence (excess +0.5 m at h1 to +12 m at h7). Split conformal 91–95% coverage at every
-  horizon; persistence widths 17 / 56 / 111 / 140 m at h1 / 3 / 5 / 7. Thinned series vs annual: median |rate error| 0.10 (every
-  2nd yr), 0.15 (3rd), 0.25 (5th), 0.35 m/yr (4 dates; 0.26–0.66 across draws); sign changes 3.5–11.7%, 'significant' status
-  changes 6.7–16.7% of transect-sides; Theil–Sen MAE h3 15.0 → 16–23 m. Strict rolling design reproduces the confirmatory H1
-  (GBT 9.7 vs 10.0 m): the fixed split's training/calibration targets overlap the earliest test origins (state in the paper).
-- B, reporting (`results/p2/explore_reporting.md`): omission 13 of 47 satellite-eroding units never reported, 28% [12, 44]
-  (all on the Tiền; ~11 distinct banks, see island duplicates below); 28/47 never as a dated event, 60% [47, 74]. Commission:
-  203/265 reported units (77% [70, 84]) below the 9.3 m floor (warned lists 79%, news 70%, emergency decisions 88%, ODM 2018 81%;
-  Hậu main 89, Tiền main 74, islands 66%; built-up terciles 67 / 80 / 83%); never-reported units 79%. Timing (events ≥ 15 m/yr):
-  reported units have fewer events than never-reported in the 3 yr after the report, ratio 0.34 [0.09, 0.97] (0.43 [0.14, 1.47]
-  matched on channel group), and also before (0.34 [0.14, 0.82]); warned-list units vs not warned, next 1–3 yr 0.45 [0.04, 0.96]
-  → warnings do not precede measured retreat. Largest unreported eroding units: Bình Hàng Tây / Bình Thạnh (Tiền L km 101–103,
-  156 / 137 m), Long Khánh A islands (134–148 m), An Hòa / An Bình A (111 m).
-- Found by B (26/10, verified by the controller): ring banks of adjacent islands are partly measured twice. 253 in-scope bank
-  points lie within 30 m of a point on another island channel (pairs isl_tien_02/03: 65, 06/07: 58, 05/06: 11, 05/07: 7,
-  03/04: 3); `reach_units.py` dropped ring banks near main banks but not near other rings. Affects n in H1/H2 (~2%), 15 units of
-  2 km with ≥ 50% shared points (8 satellite-positive). Fix pending owner decision.
+EXPLORATORY after P2 (26/10, planned in `docs/exploratory_plan.md` before running; no verdicts; CIs 10 km block bootstrap;
+numbers after the island-duplicate correction, deviation 5):
+- A, horizon (`results/p2/explore_horizon.md`): change above the noise floor (σ 3.6 m) for 27% [23, 31] of bank points at 1 yr,
+  37% [32, 42] at 3 yr, 48% [43, 53] at 5 yr, 62% [58, 67] at 10 yr (h3: Tiền 40, Hậu wide 21, Hậu narrow 30, islands 42%;
+  σ 4.7 m about 7 points lower). Rolling-origin MAE persistence / Theil–Sen 10 yr / Theil–Sen all / GBT: h1 3.7 / 4.2 / 5.2 / 2.8;
+  h3 9.3 / 12.3 / 14.6 / 9.1; h5 13.6 / 20.4 / 24.6 / 13.9; h7 16.7 / 28.9 / 34.0 / 17.6 m. GBT − persistence: h1 −0.85 [−1.05,
+  −0.68] (artefact: the centred target contains known origin noise), h2 −0.23 [−0.51, 0.03], h3 −0.23 [−0.57, 0.15], h5 +0.38
+  [−0.47, 1.14]. Theil–Sen never beats persistence (excess +0.6 m at h1 to +12 m at h7). Split conformal 90–95% coverage at
+  every horizon; persistence widths 16 / 51 / 103 / 132 m at h1 / 3 / 5 / 7. Thinned series vs annual: median |rate error| 0.09
+  (every 2nd yr) to 0.25 (5th) and 0.35 m/yr (4 dates); sign changes 4–12%, 'significant' status changes 7–17% of
+  transect-sides. The fixed confirmatory split's training/calibration targets overlap the earliest test origins; the strict
+  rolling design gives the same H1 picture (state in the paper).
+- B, reporting (`results/p2/explore_reporting.md`): omission 12 of 43 satellite-eroding units never reported, 28% [13, 44]
+  (6 Tiền main, 6 islands; Hậu has 2 eroding units, both reported); 25/43 never as a dated event, 58% [47, 72]. Commission:
+  201/260 reported units (77% [71, 84]) below the 9.3 m floor (warned lists 80%, news 70%, emergency decisions 88%, ODM 2018
+  81%; Hậu main 89, Tiền main 74, islands 67%; built-up terciles 70 / 79 / 83%); never-reported units 81%. Timing (events
+  ≥ 15 m/yr): reported units had fewer events than never-reported units in the 3 yr after the report, ratio 0.37 [0.09, 1.05]
+  (0.48 [0.14, 1.48] matched on channel group), and before 0.35 [0.14, 0.89]; warned-list units vs not warned, next 1–3 yr
+  0.49 [0.05, 0.96] (0.58 [0.08, 1.09] group-matched) → no sign that reports or warnings precede measured retreat. Largest
+  unreported eroding units: Bình Hàng Tây / Bình Thạnh (Tiền L km 101–103, 156 / 137 m), Long Khánh A islands (134–148 m),
+  Phú Thuận B (137 m, 6 points), An Hòa / An Bình A (111 m).
+- Found by B (26/10, verified): ring banks of adjacent islands were measured twice (253 in-scope points within 30 m of another
+  island channel) -> fixed by rule, protocol deviation 5; all analyses rerun.
+- C, visual check (plan C, committed before sampling, dbbe527): 60 units (12 E_om, 12 E_rep, 24 N_rep, 12 N_non), blind owner
+  review on Wayback old vs new imagery (`src/visual_check.py`); results pending.
 
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
@@ -99,7 +103,7 @@ chairman named in the article found nothing). Check for the Methods: the machine
 - Narrow mode (Hậu above Châu Đốc, width ~200 m; owner chose 22/10): canal filter ~90 m, no open-river core, smoothing 15 px, 1 km corridor.
 - Island ring sides fixed 26/10: the I/O orientation test (island pixels 150 m out) failed on channels wider than 300 m and swapped I and O on all 11 islands; now decided by distance to the island on both sides. Positions identical, labels swapped (94% of I points now lie on the island outline); island clicks and review samples relabelled, accuracy unchanged (median |err| 9 m).
 - Narrow mode: a bank farther than the 1 km corridor from the centerline is a non-detection (26/10; transects running along sharp bends in An Phú, 464 transect-years > 1.7 km removed, nothing else changed).
-- Satellite labels (26/10, `results/p1/sat_labels.md`): unit window retreat = mean position 2022–24 minus 2013–15 per bank point (≥ 2 valid years each), point changes faster than 30 m/yr dropped; primary label p75 ≥ 20 m (47 of 352 units with ≥ 5 points, 13%; Tiền main 15%, Hậu main 2%, island channels 23–25%); variants p75 ≥ 30 m, p90 ≥ 30 m, 'clean' (points with a > 60 m year-to-year jump in 2013–2024 dropped), 5 km units. Noise floor of a 3-yr mean difference 5.8–9.3 m.
+- Satellite labels (26/10, `results/p1/sat_labels.md`): unit window retreat = mean position 2022–24 minus 2013–15 per bank point (≥ 2 valid years each), point changes faster than 30 m/yr dropped; primary label p75 ≥ 20 m (43 of 343 units with ≥ 5 points after deviation 5, 13%; Tiền main 15%, Hậu main 2%, island channels 23%; before: 47 of 352); variants p75 ≥ 30 m, p90 ≥ 30 m, 'clean' (points with a > 60 m year-to-year jump in 2013–2024 dropped), 5 km units. Noise floor of a 3-yr mean difference 5.8–9.3 m.
 - Covariates (26/10, `results/p1/covariates.md`): curvature (outer bank +), width 2000–2014, width change 2000–2014, distance from border / Vàm Nao / island nodes; exposure 2020: GHSL built-up and WorldPop 0–500 m and 0–1 km landward, VIIRS, OSM road and town distance. Physical–exposure correlations all |r| < 0.7 (largest curvature ~ built-up +0.33).
 - Border: bank points outside Vietnamese communes dropped (Hậu is a border river at An Phú).
 - Cù lao convention (owner chose B, 22/10; implemented by rule 25/10): every river island of 1–150 km² is measured all round (island bank and the opposite bank of each channel around it), so the unit set does not depend on where reports exist; duplicates within 150 m of main-channel banks dropped.
