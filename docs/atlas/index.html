@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiền–Hậu Bankline Atlas</title>
+<meta name="description" content="Annual riverbank lines 2000-2024, retreat, reported erosion and 2027 forecasts with 90% intervals, Tiền and Hậu rivers, Vietnamese Mekong Delta.">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+      integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous">
+<style>
+:root { --ink: #1d232b; --ink2: #555f6b; --line: #d5dae0; --bg: #ffffff; --accent: #0b5cad; --panel-w: 330px; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
+#map { position: absolute; inset: 0 0 0 var(--panel-w); }
+#panel { position: absolute; top: 0; left: 0; bottom: 0; width: var(--panel-w); overflow-y: auto; background: var(--bg);
+         border-right: 1px solid var(--line); padding: 12px 14px 20px; z-index: 1000; }
+header { display: flex; align-items: flex-start; gap: 8px; }
+h1 { font-size: 17px; margin: 0; flex: 1; line-height: 1.25; }
+.sub { color: var(--ink2); font-size: 12.5px; margin: 4px 0 10px; }
+button { font: inherit; border: 1px solid var(--line); background: #f4f6f8; color: var(--ink); border-radius: 6px; padding: 4px 9px; cursor: pointer; }
+button:hover { background: #e8ecf0; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#lang { font-weight: 600; min-width: 42px; }
+section { border-top: 1px solid var(--line); padding: 9px 0 7px; }
+section > label.layer { display: flex; align-items: center; gap: 7px; font-weight: 600; cursor: pointer; }
+.ctl { margin: 7px 0 2px 24px; }
+.row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.yr { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 38px; text-align: right; }
+.legend { margin: 6px 0 2px 24px; font-size: 12.5px; }
+.legend .it { display: flex; align-items: center; gap: 7px; margin: 2px 0; }
+.sw { width: 26px; height: 12px; border: 1px solid #333; flex: none; }
+.ln { width: 26px; height: 0; border-top: 3px solid; flex: none; }
+.dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid #222; flex: none; margin: 0 7px 0 7px; }
+.note { color: var(--ink2); font-size: 12px; margin: 4px 0 0 24px; }
+.hide { display: none !important; }
+.base label { margin-right: 12px; cursor: pointer; }
+#toggle { display: none; }
+dialog { max-width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; color: var(--ink); }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+dialog h2 { font-size: 17px; margin: 0 0 8px; }
+dialog h3 { font-size: 14px; margin: 14px 0 4px; }
+dialog p, dialog li { margin: 4px 0; }
+dialog ul { padding-left: 18px; margin: 4px 0; }
+.pop { max-height: 52vh; overflow-y: auto; font-size: 13px; }
+.pop h4 { margin: 0 0 4px; font-size: 14px; }
+.pop .k { color: var(--ink2); }
+.pop ul { padding-left: 16px; margin: 3px 0; }
+.pop li { margin: 3px 0; }
+.pop .flag { background: #f6e3ef; border-left: 3px solid #cc79a7; padding: 4px 6px; margin: 6px 0; }
+.pop .cav { color: var(--ink2); font-size: 12px; margin-top: 6px; }
+#loading { position: absolute; top: 10px; left: calc(var(--panel-w) + 56px); z-index: 1001; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; font-size: 12.5px; }
+@media (max-width: 700px) {
+  #map { inset: 0 0 0 0; }
+  #panel { top: auto; right: 0; width: auto; max-height: 48vh; border-right: 0; border-top: 1px solid var(--line);
+           box-shadow: 0 -2px 10px rgba(0,0,0,.15); border-radius: 12px 12px 0 0; padding-top: 10px; }
+  #panel.collapsed { max-height: 56px; overflow: hidden; }
+  #panel.collapsed .sub, #panel.collapsed section { display: none; }
+  #toggle { display: inline-block; }
+  h1 { font-size: 15px; }
+  #loading { left: 56px; }
+}
+</style>
+</head>
+<body>
+<div id="map" role="region" aria-label="Map"></div>
+<div id="loading" class="hide" role="status"></div>
+<aside id="panel">
+  <header>
+    <h1 data-t="title"></h1>
+    <button id="lang" type="button" aria-label="Tiếng Việt / English">VI</button>
+    <button id="about-btn" type="button" data-t="about"></button>
+    <button id="toggle" type="button" aria-expanded="true" data-t="hide"></button>
+  </header>
+  <p class="sub" data-t="subtitle"></p>
+
+  <section class="base">
+    <div style="font-weight:600;margin-bottom:3px" data-t="basemap"></div>
+    <label><input type="radio" name="base" value="esri" checked> <span data-t="imagery"></span></label>
+    <label><input type="radio" name="base" value="osm"> <span data-t="osm"></span></label>
+  </section>
+
+  <section>
+    <label class="layer"><input type="checkbox" id="L-banks" checked> <span data-t="banks"></span></label>
+    <div class="ctl">
+      <div class="row"><input type="range" id="year" min="0" max="0" value="0" aria-labelledby="year-lab"><span class="yr" id="year-lab"></span></div>
+      <div class="row"><label><input type="checkbox" id="ref-on" checked> <span data-t="ref"></span></label>
+        <select id="ref" aria-label="Reference year"></select></div>
+    </div>
+    <div class="legend">
+      <div class="it"><span class="ln" style="border-color:#f0e442"></span><span data-t="selyear"></span></div>
+      <div class="it"><span class="ln" style="border-color:#56b4e9;border-top-style:dashed"></span><span data-t="refyear"></span></div>
+    </div>
+    <p class="note" id="zoomhint" style="color:#8a4b00" data-t="zoomhint"></p>
+    <p class="note" data-t="banks_note"></p>
+  </section>
+
+  <section>
+    <label class="layer"><input type="checkbox" id="L-units" checked> <span data-t="units"></span></label>
+    <div class="legend" id="leg-units"></div>
+    <p class="note" data-t="units_note"></p>
+  </section>
+
+  <section>
+    <label class="layer"><input type="checkbox" id="L-unrep" checked> <span data-t="unrep"></span></label>
+    <div class="legend"><div class="it"><span class="dot" style="background:#cc79a7"></span><span data-t="unrep_leg"></span></div></div>
+  </section>
+
+  <section>
+    <label class="layer"><input type="checkbox" id="L-fc"> <span data-t="fc"></span></label>
+    <div class="legend">
+      <div class="it"><span class="ln" style="border-color:#fff;outline:1px solid #222"></span><span data-t="fc_bank"></span></div>
+      <div class="it"><span class="ln" style="border-color:#e69f00;border-top-style:dashed"></span><span data-t="fc_bound"></span></div>
+    </div>
+    <p class="note" data-t="fc_note"></p>
+  </section>
+
+  <section>
+    <label class="layer"><input type="checkbox" id="L-trends"> <span data-t="trends"></span></label>
+    <div class="legend" id="leg-trends"></div>
+  </section>
+</aside>
+
+<dialog id="about" aria-labelledby="about-h">
+  <div id="about-body"></div>
+  <p style="text-align:right;margin-top:14px"><button type="button" id="about-close" data-t="close"></button></p>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+        integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous"></script>
+<script>
+'use strict';
+// ---------- text ----------
+const T = {
+ en: {
+  title: 'Tiền–Hậu riverbank atlas', about: 'About', hide: 'Hide', show: 'Layers', close: 'Close',
+  subtitle: 'Annual dry-season riverbanks 2000–2024 from Landsat, measured retreat, reported erosion and a 2027 forecast with 90% intervals. Vietnamese Mekong Delta (An Giang, Đồng Tháp). Click a line for details.',
+  basemap: 'Base map', imagery: 'Satellite imagery', osm: 'OpenStreetMap',
+  banks: 'Annual banklines', ref: 'Compare with', selyear: 'Selected year', refyear: 'Reference year',
+  zoomhint: 'Zoom in to see the banklines.',
+  banks_note: 'No composite in 2012; 2010, 2011 and 2013 cover only part of the banks (clouds, Landsat 7 stripes).',
+  units: 'Bank retreat 2014→2023 (2 km units)',
+  units_note: 'Change of the mean bank position 2013–15 → 2022–24, 75th percentile of the transects in the unit; ≥ 20 m = satellite erosion label.',
+  nodata: 'no measurement', unrep: 'Eroding reaches with no report', unrep_leg: '≥ 20 m retreat, no reported erosion found (2015–2024)',
+  fc: 'Forecast 2027 (90% interval)', fc_bank: 'Bank 2024 (mean of 2023–24)', fc_bound: 'Landward 90% bound for 2027',
+  fc_note: 'Interval width is constant per channel type, so this shows where a bank may plausibly reach, not a site-specific risk score.',
+  trends: 'Trend rate 2000–2024 (Theil–Sen)', mpy: 'm/yr', retreat: 'retreat', advance: 'advance',
+  loading: 'Loading…', failed: 'Could not load',
+  u_ret: 'Retreat 2014→2023 (p75)', u_n: 'transects', u_lab: 'Satellite label (≥ 20 m)', lab1: 'eroding', lab0: 'not eroding', labn: 'not labelled (too few transects)',
+  u_com: 'Communes (pre-2025)', u_inv: 'Reported erosion (rows used in the analysis)', u_noinv: 'No reported row matched to this unit.',
+  src: 'source', yr_unknown: 'year unknown',
+  ur_h: 'Satellite retreat ≥ 20 m but no reported erosion found', ur_check: 'Blind visual check on Esri Wayback imagery',
+  ur_loss: 'land loss visible', ur_prot: 'bank protection visible', ur_dates: 'imagery',
+  f_h: 'Forecast 2024→2027', f_pred: 'Predicted retreat (median of transects)', f_range: 'range', f_int: '90% interval half-width (Mondrian, this channel type)',
+  f_bound: 'Landward bound: up to', f_from: 'from the 2024 bank', f_pers: 'Persistence (no change) interval', f_n: 'transect-sides',
+  f_cav: 'Interval width is the same for all banks of a channel type (conformal calibration on 2021–2023), so this is where the bank may plausibly reach by 2027 with 90% average coverage, not a site-specific risk score.',
+  t_rate: 'Theil–Sen rate', t_kind: 'series type', kinds: ['linear', 'step change', 'nonlinear'],
+  side: {L: 'left bank', R: 'right bank', I: 'island bank', O: 'bank opposite the island'},
+  river: {tien: 'Tiền River', hau: 'Hậu River'}, isl: 'channel around island',
+  group: {'Tien main': 'Tiền main channel', 'Hau wide': 'Hậu wide channel', 'Hau narrow': 'Hậu narrow reach (above Châu Đốc)', 'Island': 'island channels', 'Island channels': 'island channels'},
+  vis: {clear: 'clear', possible: 'possible', none: 'none', cannot_tell: 'cannot tell', yes: 'yes', no: 'no'},
+  stype: {official_list_via_news: 'official list (via news)', news: 'news', decision_via_news: 'decision (via news)', odm_webgis_2018: 'provincial WebGIS 2018', odv_mard_points: 'Open Development Vietnam points', 'official letter': 'official letter'},
+ },
+ vi: {
+  title: 'Bản đồ bờ sông Tiền – sông Hậu', about: 'Giới thiệu', hide: 'Ẩn', show: 'Lớp bản đồ', close: 'Đóng',
+  subtitle: 'Đường bờ mùa khô hằng năm 2000–2024 từ ảnh Landsat, mức lùi bờ đo được, sạt lở đã được báo cáo và dự báo 2027 với khoảng tin cậy 90%. Đồng bằng sông Cửu Long (An Giang, Đồng Tháp). Bấm vào một đường để xem chi tiết.',
+  basemap: 'Bản đồ nền', imagery: 'Ảnh vệ tinh', osm: 'OpenStreetMap',
+  banks: 'Đường bờ hằng năm', ref: 'So sánh với', selyear: 'Năm đang chọn', refyear: 'Năm đối chiếu',
+  zoomhint: 'Phóng to bản đồ để xem đường bờ.',
+  banks_note: 'Không có ảnh tổng hợp năm 2012; các năm 2010, 2011 và 2013 chỉ phủ một phần bờ (mây, sọc ảnh Landsat 7).',
+  units: 'Lùi bờ 2014→2023 (đoạn 2 km)',
+  units_note: 'Thay đổi vị trí bờ trung bình 2013–15 → 2022–24, phân vị 75 của các mặt cắt trong đoạn; ≥ 20 m = nhãn sạt lở vệ tinh.',
+  nodata: 'không có số đo', unrep: 'Đoạn đang lùi chưa có báo cáo', unrep_leg: 'lùi ≥ 20 m, không tìm thấy báo cáo sạt lở (2015–2024)',
+  fc: 'Dự báo 2027 (khoảng 90%)', fc_bank: 'Bờ 2024 (trung bình 2023–24)', fc_bound: 'Giới hạn phía đất liền 90% cho 2027',
+  fc_note: 'Độ rộng khoảng là như nhau trong mỗi loại lòng sông, nên lớp này cho biết bờ có thể lùi tới đâu, không phải điểm rủi ro riêng cho từng vị trí.',
+  trends: 'Tốc độ xu thế 2000–2024 (Theil–Sen)', mpy: 'm/năm', retreat: 'lùi', advance: 'bồi',
+  loading: 'Đang tải…', failed: 'Không tải được',
+  u_ret: 'Lùi bờ 2014→2023 (p75)', u_n: 'mặt cắt', u_lab: 'Nhãn vệ tinh (≥ 20 m)', lab1: 'sạt lở', lab0: 'không sạt lở', labn: 'không gán nhãn (quá ít mặt cắt)',
+  u_com: 'Xã (trước 2025)', u_inv: 'Sạt lở đã báo cáo (các dòng dùng trong phân tích)', u_noinv: 'Không có dòng báo cáo nào khớp với đoạn này.',
+  src: 'nguồn', yr_unknown: 'không rõ năm',
+  ur_h: 'Vệ tinh đo lùi ≥ 20 m nhưng không tìm thấy báo cáo sạt lở', ur_check: 'Kiểm tra mù bằng mắt trên ảnh Esri Wayback',
+  ur_loss: 'thấy mất đất', ur_prot: 'thấy công trình bảo vệ bờ', ur_dates: 'ảnh',
+  f_h: 'Dự báo 2024→2027', f_pred: 'Mức lùi dự báo (trung vị các mặt cắt)', f_range: 'khoảng', f_int: 'Nửa độ rộng khoảng 90% (Mondrian, loại lòng sông này)',
+  f_bound: 'Giới hạn phía đất liền: tới', f_from: 'tính từ bờ 2024', f_pers: 'Khoảng của mô hình giữ nguyên (persistence)', f_n: 'mặt cắt-bờ',
+  f_cav: 'Độ rộng khoảng như nhau cho mọi bờ cùng loại lòng sông (hiệu chỉnh conformal trên 2021–2023), nên đây là nơi bờ có thể lùi tới vào 2027 với độ phủ trung bình 90%, không phải điểm rủi ro riêng cho từng vị trí.',
+  t_rate: 'Tốc độ Theil–Sen', t_kind: 'dạng chuỗi', kinds: ['tuyến tính', 'thay đổi đột ngột', 'phi tuyến'],
+  side: {L: 'bờ trái', R: 'bờ phải', I: 'bờ cù lao', O: 'bờ đối diện cù lao'},
+  river: {tien: 'sông Tiền', hau: 'sông Hậu'}, isl: 'nhánh quanh cù lao',
+  group: {'Tien main': 'dòng chính sông Tiền', 'Hau wide': 'sông Hậu, đoạn rộng', 'Hau narrow': 'sông Hậu, đoạn hẹp (trên Châu Đốc)', 'Island': 'nhánh quanh cù lao', 'Island channels': 'nhánh quanh cù lao'},
+  vis: {clear: 'rõ', possible: 'có thể', none: 'không', cannot_tell: 'không xác định được', yes: 'có', no: 'không'},
+  stype: {official_list_via_news: 'danh sách chính thức (qua báo)', news: 'báo chí', decision_via_news: 'quyết định (qua báo)', odm_webgis_2018: 'WebGIS tỉnh 2018', odv_mard_points: 'điểm Open Development Vietnam', 'official letter': 'công văn'},
+ }
+};
+let lang = 'en';
+try { lang = localStorage.getItem('atlas-lang') === 'vi' ? 'vi' : 'en'; } catch (e) {}
+const t = k => T[lang][k] ?? T.en[k] ?? k;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const fmt = (v, d = 0) => v == null ? '–' : (v > 0 ? '+' : '') + v.toFixed(d).replace('-', '−');
+const num = v => lang === 'vi' ? String(v).replace('.', ',') : String(v);
+
+// ---------- colour scales (ColorBrewer RdBu, colour-blind safe; red = retreat) ----------
+const UNIT_BINS = [[-Infinity, -20, '#2166ac'], [-20, -5, '#67a9cf'], [-5, 5, '#f7f7f7'], [5, 20, '#fddbc7'],
+                   [20, 50, '#ef8a62'], [50, 100, '#b2182b'], [100, Infinity, '#67001f']];
+const TREND_BINS = [[-Infinity, -5, '#2166ac'], [-5, -1, '#67a9cf'], [-1, 1, '#f7f7f7'], [1, 5, '#ef8a62'],
+                    [5, 10, '#b2182b'], [10, Infinity, '#67001f']];
+const NODATA = '#9e9e9e';
+const colour = (bins, v) => v == null ? NODATA : bins.find(b => v >= b[0] && v < b[1])[2];
+function binLabel(b, unit) {
+  if (b[0] === -Infinity) return `< ${num(b[1])} ${unit}`;
+  if (b[1] === Infinity) return `≥ ${num(b[0])} ${unit}`;
+  return `${num(b[0])} ${lang === 'vi' ? 'đến' : 'to'} ${num(b[1])} ${unit}`;
+}
+
+// ---------- map ----------
+const map = L.map('map', {preferCanvas: true, zoomControl: true}).setView([10.6, 105.4], 9);
+const bases = {
+  esri: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: 'Imagery © Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'}),
+  osm: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'})
+};
+bases.esri.addTo(map);
+map.attributionControl.addAttribution('Banks © authors, CC BY 4.0 (Landsat: USGS)');
+document.querySelectorAll('input[name=base]').forEach(r => r.addEventListener('change', () => {
+  Object.values(bases).forEach(b => map.removeLayer(b)); bases[r.value].addTo(map).bringToBack();
+}));
+map.createPane('units'); map.getPane('units').style.zIndex = 410;
+map.createPane('banks'); map.getPane('banks').style.zIndex = 430;
+map.createPane('fc'); map.getPane('fc').style.zIndex = 440;
+map.createPane('top'); map.getPane('top').style.zIndex = 450;
+const rUnits = L.canvas({pane: 'units', tolerance: 6}), rBanks = L.canvas({pane: 'banks'}),
+      rFc = L.canvas({pane: 'fc', tolerance: 6}), rTop = L.canvas({pane: 'top', tolerance: 4});
+
+const loadingEl = document.getElementById('loading');
+let pending = 0;
+async function getJSON(name) {
+  pending++; loadingEl.textContent = t('loading'); loadingEl.classList.remove('hide');
+  try {
+    const r = await fetch('data/' + name);
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch (e) {
+    loadingEl.textContent = t('failed') + ' ' + name; pending = -1000; throw e;
+  } finally {
+    if (--pending === 0) loadingEl.classList.add('hide');
+  }
+}
+
+let META, UNITS, FC, TRENDS;
+const layers = {};
+const popOpt = {maxWidth: 320, minWidth: 220, autoPanPadding: [20, 20]};
+
+// ---------- popups ----------
+function chName(ch) {
+  if (ch.startsWith('isl_')) return `${t('isl')} ${ch.slice(4).replace('_', ' ')} (${t('river')[ch.split('_')[1]]})`;
+  return t('river')[ch];
+}
+function unitPopup(p) {
+  const s = t('side'), m = 'm';
+  let h = `<div class="pop"><h4>${esc(chName(p.ch))}, ${esc(s[p.side] || p.side)}</h4>`;
+  h += `<div class="k">${esc(p.u)} · km ${num(p.km[0])}–${num(p.km[1])}</div>`;
+  h += `<p><b>${t('u_ret')}:</b> ${p.r == null ? '–' : fmt(p.r, 1) + ' ' + m} <span class="k">(${p.n} ${t('u_n')})</span><br>`;
+  h += `<b>${t('u_lab')}:</b> ${p.lab === 1 ? t('lab1') : p.lab === 0 ? t('lab0') : t('labn')}</p>`;
+  if (p.unrep) {
+    const v = t('vis'), q = p.unrep;
+    h += `<div class="flag"><b>${t('ur_h')}</b><br>${t('ur_check')}: ${t('ur_loss')}: <b>${esc(v[q.loss] || q.loss)}</b>; ` +
+         `${t('ur_prot')}: <b>${esc(v[q.prot] || q.prot)}</b>; ${t('ur_dates')} ${esc(q.old)} → ${esc(q.new)}` +
+         (q.note ? `<br><i lang="vi">“${esc(q.note)}”</i>` : '') + '</div>';
+  }
+  if (p.com.length) h += `<p><b>${t('u_com')}:</b> ${p.com.map(esc).join('; ')}</p>`;
+  h += `<p style="margin-bottom:2px"><b>${t('u_inv')}:</b></p>`;
+  if (!p.inv.length) h += `<div class="k">${t('u_noinv')}</div>`;
+  else h += '<ul>' + p.inv.map(r => `<li>${esc(r.id)} · ${esc(t('stype')[r.type] || r.type)} · ${r.year ?? t('yr_unknown')}` +
+      (r.url ? ` · <a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${t('src')}</a>` : '') +
+      (r.date ? ` <span class="k">(${esc(r.date)})</span>` : '') +
+      (r.q ? `<br><i lang="vi">${esc(r.q)}</i>` : '') + '</li>').join('') + '</ul>';
+  return h + '</div>';
+}
+function fcPopup(p) {
+  let h = `<div class="pop"><h4>${t('f_h')}</h4><div class="k">${esc(p.u)} · ${esc(t('group')[p.g] || p.g)} · ${p.n} ${t('f_n')}</div>`;
+  h += `<p><b>${t('f_pred')}:</b> ${fmt(p.pmed, 1)} m <span class="k">(${t('f_range')} ${fmt(p.pmin, 1)} … ${fmt(p.pmax, 1)} m)</span><br>`;
+  h += `<b>${t('f_int')}:</b> ± ${num(p.half)} m<br>`;
+  h += `<b>${t('f_bound')}</b> ${fmt(p.hmax, 1)} m ${t('f_from')}<br>`;
+  h += `<b>${t('f_pers')}:</b> 0 ± ${num(p.phalf)} m</p>`;
+  return h + `<div class="cav">${t('f_cav')}</div></div>`;
+}
+
+// ---------- layers ----------
+const banksCache = {};
+async function bankYear(y, style) {
+  banksCache[y] ??= await getJSON(`banks_${y}.json`);
+  return L.geoJSON(banksCache[y], {renderer: rBanks, interactive: false, style: () => style});
+}
+const yearEl = document.getElementById('year'), refEl = document.getElementById('ref'), refOn = document.getElementById('ref-on');
+const BANK_ZOOM = 11;   // banklines hide the unit colours at overview zooms
+let bankChain = Promise.resolve();
+const drawBanks = () => (bankChain = bankChain.then(drawBanksNow));   // serialise: slider events must not interleave
+async function drawBanksNow() {
+  const on = document.getElementById('L-banks').checked && map.getZoom() >= BANK_ZOOM;
+  document.getElementById('zoomhint').classList.toggle('hide', map.getZoom() >= BANK_ZOOM);
+  const y = META.years[+yearEl.value], r = +refEl.value;
+  document.getElementById('year-lab').textContent = y;
+  const want = on ? [['ref', refOn.checked ? r : null, {color: '#56b4e9', weight: 2.5, dashArray: '6 5'}],
+                     ['sel', y, {color: '#f0e442', weight: 2.5}]] : [['ref', null], ['sel', null]];
+  for (const [k, yr, st] of want) {
+    const key = yr == null ? null : `${yr}`;
+    if (layers[k]?.key === key) continue;
+    const lyr = key ? await bankYear(yr, st) : null;
+    if (layers[k]?.lyr) map.removeLayer(layers[k].lyr);
+    layers[k] = {key, lyr};
+    if (lyr) lyr.addTo(map);
+  }
+  layers.ref?.lyr && layers.sel?.lyr && layers.sel.lyr.bringToFront();
+}
+
+function buildUnits() {
+  const casing = L.geoJSON(UNITS, {renderer: rUnits, interactive: false, style: {color: '#222', weight: 8, opacity: .9, lineCap: 'round'}});
+  const fill = L.geoJSON(UNITS, {renderer: rUnits, style: f => ({color: colour(UNIT_BINS, f.properties.r), weight: 5, opacity: 1, lineCap: 'round'}),
+    onEachFeature: (f, l) => l.bindPopup(() => unitPopup(f.properties), popOpt)});
+  layers.units = L.layerGroup([casing, fill]);
+  const ur = {type: 'FeatureCollection', features: UNITS.features.filter(f => f.properties.unrep)};
+  const halo = L.geoJSON(ur, {renderer: rUnits, style: {color: '#cc79a7', weight: 16, opacity: .75, lineCap: 'round'},
+    onEachFeature: (f, l) => l.bindPopup(() => unitPopup(f.properties), popOpt)});
+  const dots = ur.features.map(f => {
+    const c = f.geometry.coordinates[0], m = c[Math.floor(c.length / 2)];
+    return L.circleMarker([m[1], m[0]], {renderer: rTop, radius: 7, color: '#000', weight: 1.5, fillColor: '#cc79a7', fillOpacity: 1})
+      .bindPopup(() => unitPopup(f.properties), popOpt);
+  });
+  layers.unrep = L.layerGroup([halo, ...dots]);
+}
+function buildFc() {   // casing first: a layer group adds its layers in creation (id) order, so later = drawn on top
+  const cas = L.geoJSON(FC, {renderer: rFc, interactive: false, style: {color: '#111', weight: 4.5, opacity: .8}});
+  const fill = L.geoJSON(FC, {renderer: rFc, style: f => f.properties.k === 'bank'
+      ? {color: '#ffffff', weight: 2.5, opacity: 1} : {color: '#e69f00', weight: 3, opacity: 1, dashArray: '7 5'},
+    onEachFeature: (f, l) => l.bindPopup(() => fcPopup(f.properties), popOpt)});
+  layers.fc = L.layerGroup([cas, fill]);
+}
+function buildTrends() {
+  layers.trends = L.layerGroup(TRENDS.map(([la, lo, r, kd]) => L.circleMarker([la, lo], {renderer: rTop, radius: 3.5, weight: .6,
+      color: '#222', fillColor: colour(TREND_BINS, r), fillOpacity: 1})
+    .bindPopup(() => `<div class="pop"><b>${t('t_rate')}:</b> ${fmt(r, 1)} ${t('mpy')}<br><b>${t('t_kind')}:</b> ${t('kinds')[kd]}</div>`)));
+}
+async function toggle(id) {
+  const on = document.getElementById('L-' + id).checked;
+  if (on && !layers[id]) {
+    if (id === 'fc') { FC = await getJSON('forecast.json'); buildFc(); }
+    if (id === 'trends') { TRENDS = await getJSON('trends.json'); buildTrends(); }
+  }
+  if (layers[id]) on ? layers[id].addTo(map) : map.removeLayer(layers[id]);
+}
+
+// ---------- legends, language, panel ----------
+function legends() {
+  const u = document.getElementById('leg-units');
+  u.innerHTML = [...UNIT_BINS].reverse().map(b => `<div class="it"><span class="sw" style="background:${b[2]}"></span>${binLabel(b, 'm')}` +
+      (b[0] === 20 ? ` <b>← ${lang === 'vi' ? 'ngưỡng nhãn' : 'label threshold'}</b>` : '') + '</div>').join('') +
+    `<div class="it"><span class="sw" style="background:${NODATA}"></span>${t('nodata')}</div>` +
+    `<div class="k" style="font-size:11.5px;margin-top:2px">+ = ${t('retreat')}, − = ${t('advance')}</div>`;
+  document.getElementById('leg-trends').innerHTML = [...TREND_BINS].reverse().map(b =>
+      `<div class="it"><span class="dot" style="background:${b[2]}"></span>${binLabel(b, t('mpy'))}</div>`).join('') +
+    `<div class="k" style="font-size:11.5px;margin-top:2px">+ = ${t('retreat')}, − = ${t('advance')}</div>`;
+}
+function about() {
+  const a = META.accuracy, g = t('group');
+  const acc = ['Tien main', 'Hau wide', 'Hau narrow', 'Island channels'].filter(k => a[k])
+    .map(k => `<li>${g[k]}: ${a[k].rmse} m (n = ${a[k].n})</li>`).join('');
+  const hm = META.half_mondrian;
+  const hw = Object.keys(hm).map(k => `${g[k]} ±${num(hm[k])} m`).join('; ');
+  if (lang === 'vi') return `<h2 id="about-h">Giới thiệu</h2>
+   <p><b>Dữ liệu:</b> đường bờ mùa khô (trung vị ảnh 1/1–1/5) hằng năm 2000–2024 (không có 2012), sông Tiền từ biên giới tới cầu Mỹ Thuận, sông Hậu từ biên giới tới cầu Cần Thơ và 11 cù lao 1–150 km².</p>
+   <p><b>Phương pháp:</b> bờ là mép nước đầu tiên tính từ đất liền trên ảnh tổng hợp MNDWI của Landsat 5/7/8/9, đo mỗi 100 m dọc các mặt cắt vuông góc với sông. Dự báo 2027 dùng gradient boosting trên các vị trí bờ trong quá khứ với khoảng conformal 90% hiệu chỉnh trên 2021–2023 (${hw}); khi kiểm định lùi thời gian ở tầm 3 năm, độ phủ đạt 91–92%, và mô hình không chính xác hơn giả định giữ nguyên.</p>
+   <h3>Độ chính xác (RMSE so với bờ số hóa thủ công trên ảnh Esri Wayback)</h3><ul>${acc}</ul>
+   <p>Lỗi đã biết: bờ nhiều mép (dải cây hoặc bãi trước ao nuôi), vật thể tạm thời, khúc cong gắt và cửa kênh ở đoạn hẹp.</p>
+   <h3>Giấy phép</h3><ul>
+   <li>Đường bờ, xu thế, nhãn và dự báo (từ Landsat, USGS, phạm vi công cộng): CC BY 4.0.</li>
+   <li>Danh mục sạt lở: CC BY-SA 4.0 (gồm điểm Open Development Vietnam).</li>
+   <li>Tên và ranh giới xã: OpenStreetMap/Kontur, ODbL, “© OpenStreetMap contributors”.</li>
+   <li>Ảnh nền: © Esri — Esri, Maxar, Earthstar Geographics và cộng đồng GIS; bản đồ nền © OpenStreetMap contributors. Không phân phối lại ảnh.</li></ul>
+   <p><b>Trích dẫn:</b> bài báo đang chuẩn bị; tham chiếu sẽ được bổ sung khi xuất bản. Trang này không dùng cookie, theo dõi hay phân tích truy cập.</p>
+   <p class="k" style="font-size:12px">Dữ liệu xây dựng ngày ${META.built}.</p>`;
+  return `<h2 id="about-h">About this atlas</h2>
+   <p><b>Data:</b> annual dry-season (1 Jan – 1 May median) banklines 2000–2024 (no composite in 2012) of the Tiền River from the Cambodian border to the Mỹ Thuận bridge, the Hậu River from the border to the Cần Thơ bridge, and 11 river islands of 1–150 km².</p>
+   <p><b>Method:</b> the bank is the first water seen from the mainland on median MNDWI composites of Landsat 5/7/8/9, measured every 100 m along transects perpendicular to the river. The 2027 forecast uses gradient boosting on past bank positions with 90% conformal intervals calibrated on 2021–2023 (${hw}); in rolling-origin validation at a 3-year horizon the intervals covered 91–92% of outcomes, and the model was not more accurate than assuming no change.</p>
+   <h3>Accuracy (RMSE against banks hand-clicked on Esri Wayback imagery)</h3><ul>${acc}</ul>
+   <p>Known error types: multi-edge banks (vegetated strip or bar in front of ponds), transient objects, sharp bends and canal mouths in the narrow reach.</p>
+   <h3>Licences</h3><ul>
+   <li>Bank positions, trends, labels and forecasts (derived from Landsat, USGS, public domain): CC BY 4.0.</li>
+   <li>Erosion inventory: CC BY-SA 4.0 (includes Open Development Vietnam points).</li>
+   <li>Commune names and boundaries: OpenStreetMap/Kontur, ODbL, “© OpenStreetMap contributors”.</li>
+   <li>Base maps: imagery © Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community; map © OpenStreetMap contributors. No imagery is redistributed.</li></ul>
+   <p><b>Citation:</b> paper in preparation; the reference will be added on publication. This page uses no cookies, tracking or analytics.</p>
+   <p class="k" style="font-size:12px">Data built ${META.built}.</p>`;
+}
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-t]').forEach(e => e.textContent = t(e.dataset.t));
+  document.getElementById('lang').textContent = lang === 'en' ? 'VI' : 'EN';
+  const pn = document.getElementById('panel');
+  document.getElementById('toggle').textContent = pn.classList.contains('collapsed') ? t('show') : t('hide');
+  if (META) { legends(); document.getElementById('about-body').innerHTML = about(); }
+  map.closePopup();
+}
+document.getElementById('lang').addEventListener('click', () => {
+  lang = lang === 'en' ? 'vi' : 'en';
+  try { localStorage.setItem('atlas-lang', lang); } catch (e) {}
+  applyLang();
+});
+const dlg = document.getElementById('about');
+document.getElementById('about-btn').addEventListener('click', () => { dlg.showModal(); dlg.scrollTop = 0; });
+document.getElementById('about-close').addEventListener('click', () => dlg.close());
+document.getElementById('toggle').addEventListener('click', e => {
+  const pn = document.getElementById('panel'), c = pn.classList.toggle('collapsed');
+  e.target.setAttribute('aria-expanded', String(!c)); e.target.textContent = c ? t('show') : t('hide');
+});
+
+// ---------- start ----------
+(async () => {
+  applyLang();
+  META = await getJSON('meta.json');
+  META.years.forEach(y => refEl.add(new Option(y, y)));
+  yearEl.max = META.years.length - 1; yearEl.value = META.years.length - 1; refEl.value = META.years[0];
+  applyLang();
+  yearEl.addEventListener('input', drawBanks);
+  refEl.addEventListener('change', drawBanks); refOn.addEventListener('change', drawBanks);
+  document.getElementById('L-banks').addEventListener('change', drawBanks);
+  UNITS = await getJSON('units.json');
+  buildUnits();
+  const pn = document.getElementById('panel'), phone = innerWidth <= 700;
+  map.fitBounds(L.geoJSON(UNITS).getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10, phone ? pn.offsetHeight + 10 : 10]});
+  map.on('zoomend', drawBanks);
+  ['units', 'unrep', 'fc', 'trends'].forEach(id => {
+    document.getElementById('L-' + id).addEventListener('change', () => toggle(id));
+    toggle(id);
+  });
+  await drawBanks();
+})();
+</script>
+</body>
+</html>

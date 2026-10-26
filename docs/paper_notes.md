@@ -113,6 +113,16 @@ real erosion signal that a 2-4 km shift removes (consistent with plan C: reports
 satellite, the ΔAUC CI excludes 0 in 20 of 40 draws (did not originally). 58 of 124 rows list units on more than one
 channel-side; island rings treated as open lines.
 
+P3 R5 (26/10): forward forecast 2024 -> 2027 (`src/forecast_2027.py`, results/p3/forecast_2027.md; rolling design of A, GBT
+fixed hyperparameters, no tuning; trained on targets <= 2023, calibrated on targets 2021-23): 90% half-widths GBT / persistence
+split ±16.6 / ±19.6 m; Mondrian Tiền main 20.4 / 23.1, Hậu wide 9.0 / 9.3, Hậu narrow 12.7 / 13.0, islands 18.9 / 25.2 m;
+median GBT forecast -1.8 m. The recent calibration years are the quietest (half-width 31 m for 2019 -> ~17 m for 2022-24, coverage
+88.7-94.6% each year), so the 2027 bands assume 2024-27 as calm as 2021-23; width is constant per group (not a site risk score).
+Interactive atlas `docs/atlas/` (Leaflet 1.9.4, static, 5.4 MB, EN/VI; `python src/release.py && python src/forecast_2027.py
+&& python src/atlas_build.py`): annual banklines with year slider and reference year, 2 km retreat units with reported rows and
+sources, unreported eroding reaches with the visual check, 2027 forecast band, Theil–Sen rates. Hosted with GitHub Pages from
+/docs when the repository is made public (owner, 26/10).
+
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
 Owner review done 26/10 (`src/inventory_server.py`, 151 rows -> `data/hotspots/inventory_review.csv`; final table
