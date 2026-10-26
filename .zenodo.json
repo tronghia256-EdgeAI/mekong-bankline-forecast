@@ -1,0 +1,34 @@
+{
+  "title": "mekong-bankline-forecast: code for coverage-verified forecasts of riverbank retreat, Tien and Hau rivers, Vietnamese Mekong Delta",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "Le, Trong Nghia",
+      "affiliation": "University of Economics Ho Chi Minh City (UEH)"
+    }
+  ],
+  "description": "Code, frozen analysis protocol and results for the manuscript \"Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta\" (in preparation for Natural Hazards and Earth System Sciences). It extracts annual dry-season banklines from Landsat and Sentinel-2 in Google Earth Engine, builds 2 km bank units, satellite and reported erosion labels and covariates, fits point forecasts and conformal prediction intervals, tests the label-source hypothesis, and runs the exploratory, robustness and post hoc analyses, figures, data release and interactive atlas. Data: doi:10.5281/zenodo.23665677.",
+  "license": "MIT",
+  "keywords": [
+    "riverbank erosion",
+    "Mekong Delta",
+    "Landsat",
+    "Google Earth Engine",
+    "conformal prediction",
+    "erosion inventory"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.23665677",
+      "relation": "isSupplementTo",
+      "resource_type": "dataset",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "https://tronghia256-edgeai.github.io/mekong-bankline-forecast/atlas/",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    }
+  ],
+  "version": "v1.0.0"
+}
