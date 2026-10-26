@@ -162,3 +162,8 @@ thresholds or units after seeing the H3 comparison.
    coverage 92.4 / 92.7 -> 92.4 / 92.7%, h = 5 91.9 / 91.8 -> 91.5 / 91.5%, CQR h = 3 70.8 -> 79.5% (fails either way);
    H3 ΔAUC -0.09 [-0.33, 0.28] / -0.22 [-0.44, 0.06] -> -0.08 [-0.29, 0.25] / -0.20 [-0.40, 0.05]. No verdict changed.
    The pre-correction outputs are in git history (commit acaf6be).
+6. 2026-10-26, before any P3 run. Section 4 "reported-site coordinate error 100-500 m (Steger 2016 style displacement)"
+   cannot be applied: the 124 usable inventory rows carry no coordinates (they are located by commune or hamlet and
+   assigned to the 2 km units of that bank), so their placement error is the commune scale, several km. Replaced by
+   shifting each row's unit set along its bank by 1 and 2 units (2-4 km), 200 random draws each; design and criterion in
+   `docs/p3_plan.md` R2.
