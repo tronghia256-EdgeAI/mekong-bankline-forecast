@@ -190,7 +190,13 @@ validation is in [results/p0/](results/p0/) and [results/p1/](results/p1/).
 
 ## Citation
 
-The manuscript is in preparation. Until it is published, please cite this repository and the tagged commit you used.
+The manuscript is in preparation. Until it is published, please cite the archived code and data:
+
+- Le, T. N. (2026). *mekong-bankline-forecast* (v1.0.0) [code]. Zenodo. https://doi.org/10.5281/zenodo.23666299
+- Le, T. N. (2026). *Annual dry-season riverbank positions (2000–2024), erosion labels and a reviewed public erosion
+  inventory, Tien and Hau rivers, Vietnamese Mekong Delta* (v1.0) [data set]. Zenodo. https://doi.org/10.5281/zenodo.23665677
+
+All code versions: https://doi.org/10.5281/zenodo.23666298
 
 ## Authors
 
