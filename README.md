@@ -2,8 +2,8 @@
 
 Code, analysis protocol and results for the manuscript
 
-> **Coverage-verified forecasts of riverbank retreat and what public erosion reports miss: Tien and Hau rivers,
-> Vietnamese Mekong Delta.** T. N. Le, M. H. Ho, V. N. Nguyen and T. B. Nguyen. In preparation for *Natural Hazards and
+> **Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as hazard labels: Tien
+> and Hau rivers, Vietnamese Mekong Delta.** T. N. Le, M. H. Ho, V. N. Nguyen and T. B. Nguyen. In preparation for *Natural Hazards and
 > Earth System Sciences*.
 
 The repository measures annual dry-season riverbanks from Landsat (2000–2024) every 100 m along 273 km of the Tien and
