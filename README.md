@@ -12,6 +12,9 @@ was scored, whether learned models beat persistence (H1), whether conformal pred
 coverage on held-out years (H2), and whether erosion-susceptibility scores depend on the label source, public reports or
 satellite-measured retreat (H3).
 
+**Interactive atlas:** <https://tronghia256-edgeai.github.io/mekong-bankline-forecast/atlas/> (annual banklines 2000–2024,
+erosion labels, reported sites, unreported eroding reaches and a 2027 forecast band).
+
 **Status:** analyses complete; manuscript under internal revision. The numbers below may change with the revision and
 are not yet peer reviewed.
 
@@ -170,8 +173,8 @@ against the results files.
   WebGIS (via Open Development Mekong) and Open Development Vietnam landslide points, 2015–2024. Every row within the
   study scope was checked against its source.
 - **Data release:** annual bank positions and banklines, trends, unit labels and covariates, the reviewed inventory, the
-  unreported eroding reaches and the accuracy clicks. They will be archived on Zenodo; the DOI will be added here on
-  publication. `python src/release.py` builds the release locally; its documentation is
+  unreported eroding reaches and the accuracy clicks. They are archived on Zenodo, doi:[10.5281/zenodo.23665677](https://doi.org/10.5281/zenodo.23665677)
+  (reserved; the link works once the record is published). `python src/release.py` builds the release locally; its documentation is
   [docs/release_README.md](docs/release_README.md).
 
 Measured accuracy against hand-clicked banks on Esri World Imagery Wayback (RMSE): 33 m on the Tien main channel, 19 m on
