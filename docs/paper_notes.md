@@ -14,6 +14,8 @@ CVD-safe categorical slots (blue, orange, aqua), diverging blue (accretion) - gr
 | fig01_study_area | Map of the analysed Tiền (127 km) and Hậu (146 km) reaches, three P0 test reaches, towns, pre-2025 provinces, inset | Study area: the Tiền and Hậu rivers from the Cambodian border to the Mỹ Thuận and Cần Thơ bridges. Boxes: test reaches used for accuracy checks (1 Sa Đéc–Cao Lãnh, 2 Long Xuyên, 3 Mỹ Thuận). Background: JRC Global Surface Water occurrence (Pekel et al., 2016). Province boundaries before the 2025 merger (FAO GAUL 2015). | JRC GSW v1.4, LSIB 2017, GAUL 2015, data/tiles.json |
 | fig02_method_example | (a) Banks 2000 vs 2024 on the 2024 MNDWI composite at Bình Hàng Trung with transects; (b) annual bank series at T280L with Theil–Sen fit | Method illustration at Bình Hàng Trung (left bank of the Tiền, Cao Lãnh). (a) Dry-season banks of 2000 and 2024 on the 2024 MNDWI composite; transects every 100 m (every fifth drawn). (b) Bank retreat on transect T280 since 2000 with the Theil–Sen trend (18.5 m/yr, 95% CI 16.6–19.6); retreat slows after 2019. | data/processed/sadec_caolanh |
 | fig03_bank_change | (a) Map of linear bank-change rates on both rivers; (b, c) along-river profiles, left/right banks | Bank change 2000–2024 from annual Landsat dry-season banks. (a) Theil–Sen rate per bank point (+ erosion); grey: step or non-linear series. (b, c) Rates along the Tiền and Hậu by distance from the border. | data/processed/{tien,hau}, units.csv |
+| fig05_sat_labels | (a, b) Unit (2 km) window retreat 2014→2023 (75th percentile of bank points) along the Tiền and Hậu, L/R banks, with the 20 m label threshold; (c) distribution for main vs island channels | Satellite erosion labels. Retreat of 2 km bank units between the 3-yr mean positions around 2014 and 2023 (75th percentile of the unit's bank points). Dashed: label threshold (20 m, ≥ 2× the noise floor). | data/processed/sat_labels_2km.csv (`src/sat_labels.py`) |
+| fig06_covariates | Along-river profiles of bank curvature, channel width (2000–2014) and built-up share 0–1 km landward (2020), Tiền and Hậu, with towns | Physical and exposure covariates of the 2 km units. | data/processed/covariates_2km.csv (`src/covariates.py`) |
 | fig04_validation | (a) Landsat minus hand-clicked bank by river / channel type; (b) eroded area vs SIWRR (Phong et al., 2022) | Accuracy. (a) Difference between the Landsat bank and the bank clicked on Esri World Imagery Wayback (negative = Landsat bank riverward); bars = median. (b) Left-bank eroded area at Bình Hàng Trung per period, this study vs Phong et al. (2022). | accuracy_review.csv per reach, tile_check.project |
 
 Supplement candidates: `results/p0/sadec_caolanh_sensor_check.png` (sensor pairs, repeatability, window),
@@ -34,7 +36,7 @@ Coverage (P1, main-channel checks of 22/10; `src/stitch.py`, `results/p1/tile_ch
 - River islands (25/10): 11 islands of 1–150 km² found by rule (holes of the connected river system in JRC ≥ 50%),
   each measured all round from a medial channel ring (island bank I, opposite bank O); ring banks within 150 m of a
   main-channel bank dropped. 2,472 ring transect-sides with a trend, 82% linear. In scope (new An Giang + Đồng
-  Tháp): 6,635 bank points, 399 units of 2 km, 178 of 5 km, 125 communes (`data/processed/units.csv`).
+  Tháp): 6,632 bank points, 399 units of 2 km, 178 of 5 km, 125 communes (`data/processed/units.csv`).
 
 Accuracy vs hand clicks (Esri Wayback, final stitched product; `figures/fig04_validation`):
 - Tiền n = 55, RMSE 33 m; Hậu wide n = 12, RMSE 19 m; Hậu narrow n = 13, RMSE 30 m; river-island channels n = 11, RMSE 14 m, median |err| 9 m (`results/p1/islands_accuracy.md`; one of 12 clicks fell on a channel narrower than the canal filter and is now a non-detection). Typical bias −10 to −20 m (Landsat bank riverward; wet-season imagery). Stable single-edge banks ~10–15 m.
@@ -60,6 +62,10 @@ chairman named in the article found nothing). Check for the Methods: the machine
 - Trends: Theil–Sen per transect-side; reverting jumps > 150 m removed as spikes; kinds linear / step / non-linear (robust residual scale > 30 m).
 - Full rivers (P1): coarse JRC least-cost centerlines, 15 overlapping 30 km tiles, other river masked per tile (Vàm Nao), stitched by chainage; L/R looking downstream.
 - Narrow mode (Hậu above Châu Đốc, width ~200 m; owner chose 22/10): canal filter ~90 m, no open-river core, smoothing 15 px, 1 km corridor.
+- Island ring sides fixed 26/10: the I/O orientation test (island pixels 150 m out) failed on channels wider than 300 m and swapped I and O on all 11 islands; now decided by distance to the island on both sides. Positions identical, labels swapped (94% of I points now lie on the island outline); island clicks and review samples relabelled, accuracy unchanged (median |err| 9 m).
+- Narrow mode: a bank farther than the 1 km corridor from the centerline is a non-detection (26/10; transects running along sharp bends in An Phú, 464 transect-years > 1.7 km removed, nothing else changed).
+- Satellite labels (26/10, `results/p1/sat_labels.md`): unit window retreat = mean position 2022–24 minus 2013–15 per bank point (≥ 2 valid years each), point changes faster than 30 m/yr dropped; primary label p75 ≥ 20 m (47 of 352 units with ≥ 5 points, 13%; Tiền main 15%, Hậu main 2%, island channels 23–25%); variants p75 ≥ 30 m, p90 ≥ 30 m, 'clean' (points with a > 60 m year-to-year jump in 2013–2024 dropped), 5 km units. Noise floor of a 3-yr mean difference 5.8–9.3 m.
+- Covariates (26/10, `results/p1/covariates.md`): curvature (outer bank +), width 2000–2014, width change 2000–2014, distance from border / Vàm Nao / island nodes; exposure 2020: GHSL built-up and WorldPop 0–500 m and 0–1 km landward, VIIRS, OSM road and town distance. Physical–exposure correlations all |r| < 0.7 (largest curvature ~ built-up +0.33).
 - Border: bank points outside Vietnamese communes dropped (Hậu is a border river at An Phú).
 - Cù lao convention (owner chose B, 22/10; implemented by rule 25/10): every river island of 1–150 km² is measured all round (island bank and the opposite bank of each channel around it), so the unit set does not depend on where reports exist; duplicates within 150 m of main-channel banks dropped.
 - H3 at reach level, 2 km units (5 km sensitivity); inventory scope = new An Giang + Đồng Tháp (old AG, DT, Tiền Giang).
@@ -69,7 +75,8 @@ chairman named in the article found nothing). Check for the Methods: the machine
 Landsat C2 L2 (USGS, via Google Earth Engine); JRC Global Surface Water v1.4 (Pekel et al., 2016); LSIB 2017 (US DoS);
 FAO GAUL 2015 (figure only); Kontur Boundaries Vietnam 2023-06-28 from OpenStreetMap (ODbL – credit "© OpenStreetMap
 contributors"; share-alike if commune assignments are redistributed); Open Development Vietnam "Landslide points over
-whole country in Vietnam" (CC-BY-SA); Esri World Imagery Wayback (visual checks only); news and provincial sources
+whole country in Vietnam" (CC-BY-SA); GHSL GHS-BUILT-S R2023A (JRC, CC BY 4.0); WorldPop 100 m 2020 (CC BY 4.0);
+VIIRS VNL V2.1 (EOG, public domain per GEE catalogue); OSM roads and places 2020-01-01 (ODbL); Esri World Imagery Wayback (visual checks only); news and provincial sources
 listed per row in the inventory.
 
 ## Limitations to state

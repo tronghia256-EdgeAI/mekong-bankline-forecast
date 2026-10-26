@@ -205,9 +205,12 @@ def geometry(stack, tf, narrow=False):
             in_core = np.nonzero(core[ri, ci])[0]
             if not len(in_core):                          # narrow branch: no open river, start from the river water
                 in_core = np.nonzero(river[ri, ci])[0]
+            bd = d[in_belt[-1]] if len(in_belt) else np.nan
+            if narrow:   # a ~200 m channel has no bank beyond the corridor (transects running along a sharp bend)
+                bd = min(bd, NARROW_CORRIDOR - BELT_MARGIN)   # (nan stays nan: min returns its first argument)
             sides.append((i, side, cx[i], cy[i], nrm[i, 0] * sgn, nrm[i, 1] * sgn, r, c, ri, ci,
                           in_core[-1] if len(in_core) else None,       # outer edge of the open river on this side
-                          d[in_belt[-1]] if len(in_belt) else np.nan))
+                          bd))
     return xy, sides
 
 
@@ -242,10 +245,11 @@ def island_geometry(stack, tf, poly):
     at = lambda s: np.column_stack([np.interp(s % L, seg, loop[:, 0]), np.interp(s % L, seg, loop[:, 1])])
     c, t = at(st), at(st + 50) - at(st - 50)
     nrm = np.column_stack([-t[:, 1], t[:, 0]]) / np.hypot(*t.T)[:, None]
-    r, cc = to_rc(c + 150 * nrm, tf)
-    ok = (r >= 0) & (r < H - 1) & (cc >= 0) & (cc < W - 1)
-    if isl[np.round(r[ok]).astype(int), np.round(cc[ok]).astype(int)].mean() < 0.5:
-        nrm = -nrm                                            # +normal points to the island
+    def near(sgn):                                            # distance to the island 150 m along +-normal
+        r, cc = to_rc(c + sgn * 150 * nrm, tf)
+        return di[np.clip(np.round(r).astype(int), 0, H - 1), np.clip(np.round(cc).astype(int), 0, W - 1)]
+    if np.median(near(1) - near(-1)) > 0:                     # (testing for island pixels 150 m out failed on
+        nrm = -nrm                                            # channels wider than 300 m) +normal points to the island
     d = np.arange(0, HALF + STEP, STEP)
     sides = []
     for i in range(len(st)):

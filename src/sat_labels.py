@@ -197,8 +197,8 @@ def figure(s, prim_m=20):
     save(fig, 'fig05_sat_labels')
 
 
-DIAG = [('tien', 199, 'L', 'tien_L_+008'), ('isl_tien_01', 66, 'O', 'isl_tien_01_O_+003'),
-        ('isl_tien_02', 127, 'I', 'isl_tien_02_I_+006'), ('tien', 315, 'L', 'tien_L_+015'),
+DIAG = [('tien', 199, 'L', 'tien_L_+008'), ('isl_tien_01', 66, 'I', 'isl_tien_01_I_+003'),
+        ('isl_tien_02', 127, 'O', 'isl_tien_02_O_+006'), ('tien', 315, 'L', 'tien_L_+015'),
         ('tien', 321, 'L', 'tien_L_+015'), ('hau', 814, 'L', 'hau_L_+040')]
 
 
@@ -264,13 +264,13 @@ def report(s2, s5, ev, nf, u):
         dep[['unit', 'km_from', 'n_win', 'sh_step', 'sh_nonlinear', 'win_p75', 'n_win_lin', 'win_p75_lin',
              'n_win_clean', 'win_p75_clean']].round(2).to_markdown(index=False), '',
         'Many large positives are step series, not non-linear ones: a riverward jump of 0.5-1.1 km in 2002-2006 (an '
-        'island or bar joined the mainland, so the measured bank moved to its outer edge), then steady retreat of '
-        'that new bank through the window (e.g. tien_L_+008 T199L, isl_tien_01_O_+003 T66O, isl_tien_02_I_+006 '
+        'island or bar joined the bank, so the measured bank moved to its outer edge), then steady retreat of '
+        'that new bank through the window (e.g. tien_L_+008 T199L, isl_tien_01_I_+003 T66I, isl_tien_02_O_+006 '
         'T127I; `results/p1/sat_labels_series_check.png`). Their long-term lrr is negative because of the old step, '
         'but the window retreat is real retreat of the present bank. Non-linear positives (tien_L_+015) are '
         'accelerating-then-slowing retreat, with one landward step 2011->2013 at T321L just before the window. A '
         'true artefact is flip-flopping between two edges (hau_L_+040 T814L, ~70 m alternations; _lin drops the unit, '
-        '_clean keeps it at the threshold) and a bar that sits in front of the bank and then goes (isl_hau_02_O_+003: '
+        '_clean keeps it at the threshold) and a bar that sits in front of the bank and then goes (isl_hau_02_I_+003: '
         'bank ~130 m riverward 2015-2021, back in 2022; _clean drops it). tien_R_+059 has a 60-130 m landward jump in '
         '2023 that persists in 2024 (a collapse or a detached bar; check imagery). Primary label therefore uses all '
         'points; the _clean variant is the robustness check.', '',
