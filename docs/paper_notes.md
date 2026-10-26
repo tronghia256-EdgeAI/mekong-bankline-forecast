@@ -79,7 +79,20 @@ numbers after the island-duplicate correction, deviation 5):
 - Found by B (26/10, verified): ring banks of adjacent islands were measured twice (253 in-scope points within 30 m of another
   island channel) -> fixed by rule, protocol deviation 5; all analyses rerun.
 - C, visual check (plan C, committed before sampling, dbbe527): 60 units (12 E_om, 12 E_rep, 24 N_rep, 12 N_non), blind owner
-  review on Wayback old vs new imagery (`src/visual_check.py`); results pending.
+  review on Wayback old vs new imagery (`src/visual_check.py`, `results/p2/visual_check.md`; 60/60 answered 26/10; imagery
+  median 2010-05 vs 2025-09, i.e. a longer span than the 2014→2023 label window). Exact 95% CIs.
+  - Omission confirmed: 9/11 never-reported eroding units show clear land loss (82% [48, 98]; 1 cannot tell); all 6 assessed
+    omitted units with 110–156 m retreat (Long Khánh A, Bình Hàng Tây / Bình Thạnh, An Hòa / An Bình A) clear. Owner notes: at
+    Thường Phước 2 (tien_L_+004/+005) the loss is of a narrow strip in front of the mainland, not the mainland bank -> mainland
+    bank loss 7/11 (64% [31, 89]).
+  - Satellite label precision: 19/22 eroding-labelled units (reported or not) clear loss (86% [65, 97]); never-reported units
+    below the floor 1/12 clear (8% [0, 38]).
+  - Commission: reported units below the floor 6/23 clear loss (26% [10, 48]; owner notes: loss on part of the 2 km unit,
+    e.g. Hòa Lạc, Bình Thạnh Đông, Vĩnh Lộc, An Hiệp) vs 8% in never-reported below-floor units -> reports partly capture
+    short failures that the unit p75 label misses; 14/23 (61% [39, 80]) show neither loss nor protection.
+  - Bank protection: none seen in any of the 60 units (0/60, [0, 6]), so visible embankments do not explain commission in
+    this sample; the sample drew no town-centre reach with a known revetment (Tân Châu, Long Xuyên centre, Hồng Ngự town),
+    and piles under vegetation are not visible from above.
 
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
