@@ -171,6 +171,12 @@ P4 post hoc analyses (26/10, owner approved; plan `docs/p4_posthoc_plan.md` comm
   plus Google Scholar (results/p0/g1_scholar_check.md).
 - Title changed 26/10 (owner): "Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as
   hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta".
+- Target journal changed 26/10 (owner, after the advisor objected to public preprints; NHESS posts every manuscript on
+  EGUsphere): Geomorphology (Elsevier; Q1 Earth-Surface Processes, single-anonymized review, voluntary preprints only).
+  Manuscript moved to elsarticle (review layout, line numbers, author-year references); abstract shortened to the
+  250-word limit (no number changed); 5 highlights; generative-AI declaration in its own section. The repository
+  history was rewritten the same day so that no commit or code archive contains the manuscript draft (code DOI now
+  v1.0.1, doi:10.5281/zenodo.23668559; v1.0.0 deleted on Zenodo).
 
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.

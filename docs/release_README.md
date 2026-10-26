@@ -1,7 +1,7 @@
 # Annual dry-season banklines (2000–2024) and a public erosion inventory, Tiền and Hậu rivers, Vietnamese Mekong Delta
 
 Data release for the paper "Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as
-hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta" (in preparation for Natural Hazards and Earth System Sciences). Code: the companion repository (MIT licence),
+hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta" (in preparation). Code: the companion repository (MIT licence),
 archived at the tagged commit named in the Zenodo record.
 
 ## Coverage

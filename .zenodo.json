@@ -7,7 +7,7 @@
       "affiliation": "University of Economics Ho Chi Minh City (UEH)"
     }
   ],
-  "description": "Code, frozen analysis protocol and results for the manuscript \"Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta\" (in preparation for Natural Hazards and Earth System Sciences). It extracts annual dry-season banklines from Landsat and Sentinel-2 in Google Earth Engine, builds 2 km bank units, satellite and reported erosion labels and covariates, fits point forecasts and conformal prediction intervals, tests the label-source hypothesis, and runs the exploratory, robustness and post hoc analyses, figures, data release and interactive atlas. Data: doi:10.5281/zenodo.23665677.",
+  "description": "Code, frozen analysis protocol and results for the manuscript \"Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta\" (in preparation). It extracts annual dry-season banklines from Landsat and Sentinel-2 in Google Earth Engine, builds 2 km bank units, satellite and reported erosion labels and covariates, fits point forecasts and conformal prediction intervals, tests the label-source hypothesis, and runs the exploratory, robustness and post hoc analyses, figures, data release and interactive atlas. Data: doi:10.5281/zenodo.23665677.",
   "license": "MIT",
   "keywords": [
     "riverbank erosion",
