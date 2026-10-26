@@ -21,6 +21,7 @@ CVD-safe categorical slots (blue, orange, aqua), diverging blue (accretion) - gr
 | fig09_horizon (EXPLORATORY) | (a) Share of bank points whose change exceeds the 95% noise floor, h = 1–10 yr, by channel group; (b) rolling-origin test MAE of persistence, Theil–Sen (10 yr, all years), GBT and noise only, by horizon; (c) median rate error of thinned series vs annual rates by number of dates | Exploratory: forecast horizon and sampling interval. (a) Detectability with block-bootstrap bands (dashed: σ = 4.7 m); (b) targets 2019–2024, origins t = target − h, bars 95% block-bootstrap CI; (c) small markers: random date draws. GBT gain at h = 1–2 reflects known origin noise in the centred target, not bank movement. | data/processed/explore_horizon_*.csv (`src/explore_horizon.py`) |
 | fig10_reporting (EXPLORATORY) | (a) Measured change class of reported units by source type and of never-reported units; (b) measured event rate from Y−3 to Y+3 around the reported year, reported vs never-reported units; (c, d) along-river strips: any report, event rows, satellite-eroding units (reported / never reported) | Exploratory: what the public reports capture. (a) Retreat 2014→2023 of 2 km units (no measurable change = within ±9.3 m); (b) unit-year events (p90 ≥ 15 m/yr; 2012, 2024 excluded) with block-bootstrap CI, controls matched on calendar year and channel group. | data/processed/explore_reporting_*.csv (`src/explore_reporting.py`) |
 | fig12_isprs2010 | Dumbbell chart: predicted (Lam Dao Nguyen et al., 2010) vs measured median bank retreat since 2009 at seven site-sides, 2015 and 2020, with the site-matching range | Verification of the 2010 deterministic forecast. Predicted change from the paper's appendices (weighted linear DSAS extrapolation, base 2009); measured from annual Landsat banks (3-yr means). Grey: range from two ways of matching the paper's sites to our transects. | `src/p3_isprs2010.py`, results/p3/isprs2010.md |
+| figS1_placement (supplement) | (a) ΔAUC per training source for the original placement and 200 draws with reported rows shifted 2 km and 4 km along the bank; (b) omission and commission shares per draw with the original 95% CI | Placement sensitivity of the reported labels (protocol deviation 6). | `src/p3_placement.py`, results/p3/placement.md |
 | fig04_validation | (a) Landsat minus hand-clicked bank by river / channel type; (b) eroded area vs SIWRR (Phong et al., 2022) | Accuracy. (a) Difference between the Landsat bank and the bank clicked on Esri World Imagery Wayback (negative = Landsat bank riverward); bars = median. (b) Left-bank eroded area at Bình Hàng Trung per period, this study vs Phong et al. (2022). | accuracy_review.csv per reach, tile_check.project |
 
 Supplement candidates: `results/p0/sadec_caolanh_sensor_check.png` (sensor pairs, repeatability, window),
@@ -102,6 +103,15 @@ appendices 1-7, every transect, base 2009) missed in both directions. Median ret
 Long Khánh A 198 vs 118 and 178 vs 71; "Châu Ma" east (isl_tien_04, matched by map grid only) 171 vs 142; west undecided (59 or
 130 vs 123). Three headline numbers in the paper's text contradict its own appendices (appendix values used). Matches are
 candidate stretches (paper maps 70-460 m off our composites); descriptive, seven site-sides.
+
+P3 R2 (26/10, `results/p3/placement.md`, deviation 6; criterion fixed in docs/p3_plan.md): reported rows shifted along the
+bank by 2 km (k = 1) and 4 km (k = 2), 200 draws each. UNCHANGED: H3 not supported in 40/40 full-decision draws (any-row and
+event-only labels; fails on the tercile condition every time); median omission 26% [19, 35] (k = 1) and 28% [21, 40] (k = 2),
+no event row 53% / 60%, commission 77% [75, 79] at both, all inside the original CIs. Note: the reported-trained values move
+with placement (AUC against satellite 0.57 -> ~0.50; ΔAUC -0.08 -> +0.01 / +0.08), i.e. the original placement carries a weak
+real erosion signal that a 2-4 km shift removes (consistent with plan C: reports catch short failures); trained on
+satellite, the ΔAUC CI excludes 0 in 20 of 40 draws (did not originally). 58 of 124 rows list units on more than one
+channel-side; island rings treated as open lines.
 
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
