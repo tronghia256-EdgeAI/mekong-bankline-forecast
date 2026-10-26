@@ -26,3 +26,6 @@ paper/submission/
 
 # Manuscript sources (kept locally, not published in the repository)
 paper/
+
+# Large TIFF exports (graphical abstract for submission; PNG and PDF are committed)
+figures/*.tif
