@@ -151,3 +151,5 @@ DT105,reject,,,"xã không giáp sông Tiền, sạt ở rạch/kênh nội đ�
 RC004,keep,,,"2012, trước cửa sổ phân tích, chưa khớp xã",2026-10-26T10:25:42
 DT118,unsure,,,không có xã Phước Thuận ở Hồng Ngự; cần xác định xã,2026-10-26T10:27:07
 RC123,keep,,,"ấp thành phố, chưa xác định xã",2026-10-26T10:27:32
+RC090,duplicate,,,RC089,2026-10-26T10:31:43
+RC128,duplicate,,,DT106,2026-10-26T10:31:44
