@@ -15,19 +15,95 @@ satellite-measured retreat (H3).
 **Status:** analyses complete; manuscript under internal revision. The numbers below may change with the revision and
 are not yet peer reviewed.
 
+## Study area and workflow
+
+![Study area](figures/fig01_study_area.png)
+
+*The Tien and Hau rivers from the Cambodian border to the My Thuan and Can Tho bridges. Boxes: reaches used for accuracy
+checks (1 Sa Dec–Cao Lanh, 2 Long Xuyen, 3 My Thuan). Background: JRC Global Surface Water occurrence.*
+
+![Workflow](paper/figures/fig00_workflow.png)
+
+*Workflow. Three lanes lead from the data (grey) through processing (blue) and products (purple) to the confirmatory
+hypotheses H1–H3 (orange): annual banks to forecasts and intervals, banks to satellite labels, and public reports to
+reported labels. Exploratory analyses and robustness checks (green) concern all results.*
+
 ## Main results
 
 | | Result | Source |
 |---|---|---|
 | H1, point forecasts | Not supported. Gradient boosting and Gaussian processes did not beat persistence at 3 or 5 years (test MAE 9.9 vs 9.3 m at 3 years). | [results/p2/forecast.md](results/p2/forecast.md) |
-| H2, 90 % intervals | Supported for pooled coverage. Split and Mondrian conformal intervals covered 92.4 % and 92.7 % at 3 years and 91.5 % at 5 years on the 2019–2024 test period. Coverage is marginal: 97 % at stable banks, 60 % at banks retreating faster than 10 m/yr; a post hoc Mondrian calibration by past retreat rate raised the latter to 86 %. | [results/p2/forecast.md](results/p2/forecast.md) |
+| H2, 90 % intervals | Supported for pooled coverage. Split and Mondrian conformal intervals covered 92.4 % and 92.7 % at 3 years and 91.5 % at 5 years on the 2019–2024 test period. Coverage is marginal: 97 % at stable banks, 60 % at banks retreating faster than 10 m/yr; a post hoc Mondrian calibration by past retreat rate raised the latter to 86 %. | [results/p2/forecast.md](results/p2/forecast.md), [results/p4/posthoc.md](results/p4/posthoc.md) |
 | H3, label source | Not supported as specified. The reported label marks 76 % of the 2 km bank units and is unrelated to measured retreat (Cohen's κ = −0.01). | [results/p2/h3.md](results/p2/h3.md) |
 | Exploratory | 12 of 43 satellite-eroding units are absent from the public reports we retrieved; a blind check on high-resolution imagery confirmed land loss at 9 of 11 assessable cases. | [results/p2/explore_reporting.md](results/p2/explore_reporting.md), [results/p2/visual_check.md](results/p2/visual_check.md) |
 | Robustness | H2 unchanged when retreat is re-measured with Sentinel-2. H3 unchanged when reports are displaced 2–4 km. A 2010 deterministic forecast for the same banks missed by 29–152 m. | [results/p3/](results/p3/) |
 
 The exploratory analyses were planned after the confirmatory results and have no pass/fail rule. All plans were written
-and committed before their runs: [docs/protocol.md](docs/protocol.md), [docs/exploratory_plan.md](docs/exploratory_plan.md)
-and [docs/p3_plan.md](docs/p3_plan.md).
+and committed before their runs: [docs/protocol.md](docs/protocol.md), [docs/exploratory_plan.md](docs/exploratory_plan.md),
+[docs/p3_plan.md](docs/p3_plan.md) and [docs/p4_posthoc_plan.md](docs/p4_posthoc_plan.md).
+
+## Figures
+
+### Bank measurement and accuracy
+
+![Method example](figures/fig02_method_example.png)
+
+*Method at Binh Hang Trung (Tien left bank). (a) Dry-season banks of 2000 and 2024 on the 2024 MNDWI composite with
+transects; (b) bank retreat on one transect since 2000 with its Theil–Sen trend.*
+
+![Accuracy](figures/fig04_validation.png)
+
+*Accuracy. (a) Landsat bank minus hand-clicked bank on Esri World Imagery Wayback by channel type (negative: Landsat bank
+riverward); bars: median. (b) Left-bank eroded area at Binh Hang Trung per period, this study and the survey of Dinh et al.
+(2022).*
+
+### Bank change, 2000–2024
+
+![Bank change](figures/fig03_bank_change.png)
+
+*(a) Theil–Sen rate per bank point (positive: retreat); grey: step or non-linear series. (b, c) Rates along the Tien and
+Hau by distance from the border.*
+
+### Forecasts and intervals (H1, H2)
+
+![Coverage](figures/fig07_coverage.png)
+
+*Coverage of 90 % prediction intervals on the 2019–2024 test period. (a) By method and channel type, h = 3 years, with
+the 90 ± 3 % band; (b) pooled coverage against mean width, h = 3 and 5; (c) by test target year, h = 3. Bars: 95 %
+block-bootstrap intervals over 10 km blocks.*
+
+![Horizon](figures/fig09_horizon.png)
+
+*Exploratory analysis A. (a) Share of bank points whose change exceeds the 95 % noise floor, by horizon and channel type;
+(b) rolling-origin test MAE by horizon; (c) rate error of thinned series against annual rates.*
+
+### Label sources and public reports (H3)
+
+![Label sources](figures/fig08_label_source.png)
+
+*Label-source comparison at 2 km units. (a) AUC of the logistic model trained on each label source and scored against
+both; (b) ΔAUC by built-up tercile; (c) satellite window retreat against built-up share 0–1 km (dashed: 20 m label
+threshold).*
+
+![Reporting](figures/fig10_reporting.png)
+
+*Exploratory analysis B. (a) Measured change of reported units by source type and of unreported units; (b) measured
+unit-year events around the reported year; (c, d) units along the Tien and Hau.*
+
+### Robustness
+
+![Sentinel-2](figures/fig11_sentinel2.png)
+
+*Robustness to sensor resolution. (a) Sentinel-2 minus Landsat bank position, 2018–2024, by channel type; (b) coverage of
+the frozen intervals against Sentinel-2 and Landsat truth; (c) unit retreat 2018–2023, Sentinel-2 against Landsat.*
+
+![2010 forecast](figures/fig12_isprs2010.png)
+
+*Verification of a 2010 deterministic forecast (Nguyen et al., 2010, ISPRS Archives): predicted against measured median bank retreat
+since 2009 at seven site sides, for 2015 and 2020.*
+
+Supplementary figures: [satellite erosion labels](figures/fig05_sat_labels.png),
+[covariates](figures/fig06_covariates.png), [placement sensitivity of the reports](figures/figS1_placement.png).
 
 ## Repository layout
 
