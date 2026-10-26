@@ -41,7 +41,7 @@ TOWNS = {  # lon, lat, label offset (points)
     'Sa Đéc': (105.757, 10.296, (-34, -9)), 'Cần Thơ': (105.78, 10.035, (-38, -4)),
     'Hồng Ngự': (105.343, 10.808, (5, 3)), 'Mỹ Thuận': (105.915, 10.275, (-12, 8)),
 }
-SIWRR = {'2003-2006': -30.0, '2006-2014': -41.5, '2014-2017': -11.5, '2017-2021': -23.0}   # ha, left bank (Phong 2022)
+SIWRR = {'2003-2006': -30.0, '2006-2014': -41.5, '2014-2017': -11.5, '2017-2021': -23.0}   # ha, left bank (Dinh et al. 2022)
 
 plt.rcParams.update({
     'font.family': 'DejaVu Sans', 'font.size': 8, 'axes.labelsize': 8, 'axes.titlesize': 8,
@@ -297,7 +297,7 @@ def validation():
 
     ours = siwrr_areas()
     x = np.arange(len(SIWRR))
-    b.bar(x - .2, -np.array(list(SIWRR.values())), .38, color=INK2, label=f'SIWRR (Phong et al., 2022): {-sum(SIWRR.values()):.0f} ha')
+    b.bar(x - .2, -np.array(list(SIWRR.values())), .38, color=INK2, label=f'SIWRR (Dinh et al., 2022): {-sum(SIWRR.values()):.0f} ha')
     b.bar(x + .2, -np.array(list(ours.values())), .38, color=BLUE, label=f'This study: {-sum(ours.values()):.0f} ha')
     b.set_xticks(x, [k.replace('-', '–\n') for k in SIWRR])
     b.set_ylabel('Eroded area, left bank (ha)')
