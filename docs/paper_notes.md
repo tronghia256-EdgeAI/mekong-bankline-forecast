@@ -48,7 +48,9 @@ row; the commune-level warning merged into the specific event), 1 rejected (DT10
 a canal), 1 unsure (DT118: source says Xa Phuoc Thuan, Hong Ngu; no such commune in the admin data, unresolved).
 124 rows usable for labels (kept, on a measured bank, event year 2015-2024): 69 warned-reach lists, 41 news, 9 emergency
 decisions, 5 ODM 2018. Kept rows outside the window: RC116, DT101, DT112-117 (before 2015) and 4 ODV points (no year; static
-label only). Check for the Methods: the machine's "confidence" is source specificity, not truth; the owner rejected 1 of 151.
+label only). Unmatched rows left unassigned on 26/10 rather than guessed: RC004 (Long Xuyen, 2012, outside the window anyway),
+RC123 (city-level 'TP Cao Lanh', 3 km reach, ODM 2018), DT118 (Phuoc Thuan: no such commune; web searches for the commune
+chairman named in the article found nothing). Check for the Methods: the machine's "confidence" is source specificity, not truth; the owner rejected 1 of 151.
 
 ## Method decisions (with dates)
 
