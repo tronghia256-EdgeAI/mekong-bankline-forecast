@@ -97,6 +97,11 @@ Còn ghi nhận: 3 điểm nhiều mép ở Sa Đéc (T303R, T326L, T410R) lệc
   thấy kè). B phát hiện bờ giữa hai cù lao kề nhau bị đo hai lần → sửa đổi 5 trong protocol, chạy lại tất cả, không kết luận
   nào đổi (H2 vẫn 92,4 / 92,7%; nhãn báo cáo phủ 76% đơn vị). **P2 đóng** (tiêu chí: H1–H3 có khoảng tin cậy bootstrap theo
   khối). Tiếp: P3.
+- 26/10: **P3 phân tích xong** (`docs/p3_plan.md`, tiêu chí chốt trước khi chạy; `results/p3/`): R1 Sentinel-2 (độ phủ H2 với
+  "đáp án" Sentinel-2 92,3 / 92,6% → không đổi; bờ Sentinel-2 lệch Landsat trung vị 1,9 m), R2 dời vị trí báo cáo 2–4 km (H3 và
+  B không đổi, sửa đổi 6), R3 dự báo 2010 so thực tế (hình 12), R4 gói dữ liệu (`src/release.py`), R5 bản đồ web
+  (`docs/atlas/`, dự báo 2027). Còn lại khi công bố: chủ đề tài tải gói lên Zenodo lấy DOI và bật GitHub Pages khi repo công
+  khai. Tiếp: P4 viết bài.
 
 **Tạp chí** (SJR 2025, đều Q1; giá lấy từ danh sách APC của Elsevier ngày 5/10/2026):
 - **Chính: NHESS** (SJR 1,418). Hợp nhất với câu chuyện độ phủ và nguồn nhãn của bản đồ nguy cơ. Phí 1.800 €, được miễn nếu Việt Nam thuộc Research4Life; phải xác nhận trên research4life.org trước khi nộp.

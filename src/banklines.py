@@ -83,12 +83,13 @@ def longest_path(skel):
     return np.array(path, float)
 
 
-def mainland_mask(water):
+def mainland_mask(water, px=30.0):
     """Land joined to the raster border or larger than ISLAND_PX (inhabited cù lao), with the ponds it encloses
     filled in; bars, small islets and boats are not. Canals narrower than ~90 m are opened away first so they
-    do not cut the mainland into 'islands'."""
-    lab, _ = ndimage.label(~binary_opening(water, disk(1)), structure=EIGHT)
-    keep = np.bincount(lab.ravel()) >= ISLAND_PX
+    do not cut the mainland into 'islands'. px = pixel size (m): the opening disc (3 px = 90 m across at 30 m) and
+    ISLAND_PX keep their physical size at other pixel sizes (Sentinel-2, p3 R1)."""
+    lab, _ = ndimage.label(~binary_opening(water, disk(round((90 / px - 1) / 2))), structure=EIGHT)
+    keep = np.bincount(lab.ravel()) >= ISLAND_PX * (30 / px) ** 2
     keep[np.unique(np.r_[lab[0], lab[-1], lab[:, 0], lab[:, -1]])] = True
     keep[0] = False                        # label 0 is water
     return ndimage.binary_fill_holes(keep[lab])
@@ -263,11 +264,11 @@ def island_geometry(stack, tf, poly):
     return np.vstack([xy, xy[:1]]), sides
 
 
-def positions(m, sides):
+def positions(m, sides, px=30.0):
     """Bank distance from the centerline (m) per transect-side for one composite (own Otsu threshold)."""
     t = threshold_otsu(m[np.isfinite(m)])
     wat = np.nan_to_num(m, nan=-1) > t
-    ml = mainland_mask(wat)
+    ml = mainland_mask(wat, px)
     d = np.arange(0, HALF + STEP, STEP)
     out = {}
     for i, side, _, _, _, _, r, c, ri, ci, k0, belt_d in sides:
