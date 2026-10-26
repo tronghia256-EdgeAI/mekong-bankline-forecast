@@ -132,3 +132,20 @@ thresholds or units after seeing the H3 comparison.
    Clarifications of the same section (not changes): model inputs use only years <= t; the 3-yr centred mean enters
    only the target (the true change being predicted), and where a centred window is incomplete (e.g. 2024) the mean of
    the available years (>= 2) is used.
+2. 2026-10-26, H1/H2 run, decided before the test period was scored. The listed width covariates (`width_m`,
+   `dwidth_00_14`, medians over 2000-2014) contain bank positions after the early forecast origins (from 2007) and would
+   break "inputs use only years <= t". Replaced by `width_00` (median width 2000-2002). Learned-model inputs:
+   `curv_bank`, `width_00`, `is_island`, `river_km`, `node_km` plus the lagged positions and rates. GP fitted on a random
+   subsample of 1,000 training rows (seed 0) for run time. H1 judged for each learned model against the baseline with the
+   lowest test MAE.
+3. Interpretations recorded after the runs (no result changed by them). H3: the decision rule is applied per training
+   source and H3 counts as supported only if both pass (logistic primary); "monotone" means the three tercile point
+   estimates are ordered; event-only rows = (unit_type vụ or điểm, or decision_via_news) and not official_list_via_news
+   (43 rows); commune-bank covariates from `covariates.per_unit`. H1/H2: change zones = +-10 km around Vàm Nao and the
+   last 10 km of the Tiền above Mỹ Thuận (defined by the analyst, the protocol named the periods but not the reaches).
+4. Known design limits found in the runs, reported in the paper, not repaired on these data: (a) ACI as specified
+   (6 test origins, delayed feedback, gamma = 0.005) receives 1-3 updates and is identical to split conformal by
+   construction, so it is not a test of adaptivity; (b) targets include unremoved edge switches of several hundred
+   metres to 2 km (the spike filter catches only reverting jumps), which inflate RMSE and the Gaussian SD; (c) CQR
+   at h = 3 under-covers because quantile widths shift with composite completeness between calibration origins
+   (next to the incomplete 2010-2013 composites) and test origins. Any analysis addressing these is exploratory.
