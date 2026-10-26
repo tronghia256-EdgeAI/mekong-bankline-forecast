@@ -91,6 +91,11 @@ Còn ghi nhận: 3 điểm nhiều mép ở Sa Đéc (T303R, T326L, T410R) lệc
 - 26/10: nhãn vệ tinh (`src/sat_labels.py`; nhãn chính: 75% điểm bờ của đơn vị lùi ≥ 20 m 2014→2023, 47/352 đơn vị) và biến phụ trợ (`src/covariates.py`) xong. Sửa hai lỗi: nhãn I/O của bờ cù lao bị đảo ở cả 11 cù lao (số đo không đổi); chế độ sông hẹp loại bờ xa hơn 1 km. Bản nháp protocol: `docs/protocol.md`.
 - 26/10: chủ đề tài duyệt toàn bộ đề xuất D1–D8; protocol khóa (tag `protocol-v1`). **P1 xong.** Tiếp: P2.
 - 26/10: **P2 xong** (`results/p2/`): H1 không được ủng hộ (mô hình học máy không thắng "giữ nguyên"), **H2 được ủng hộ** (khoảng conformal giữ độ phủ ~92% ở tầm 3 và 5 năm; khoảng Gauss phủ thừa, rộng gấp 5 lần), H3 không được ủng hộ (nhãn báo cáo phủ 75% đơn vị, không khớp nhãn vệ tinh). Sửa đổi 2–4 ghi trong protocol.
+- 26/10: phân tích thăm dò (kế hoạch commit trước khi chạy, `docs/exploratory_plan.md`): A tầm dự báo và số ảnh (hình 9),
+  B báo cáo công khai phản ánh được bao nhiêu (hình 10), C kiểm tra mù 60 đoạn trên ảnh Wayback (bỏ sót xác nhận 9/11, không
+  thấy kè). B phát hiện bờ giữa hai cù lao kề nhau bị đo hai lần → sửa đổi 5 trong protocol, chạy lại tất cả, không kết luận
+  nào đổi (H2 vẫn 92,4 / 92,7%; nhãn báo cáo phủ 76% đơn vị). **P2 đóng** (tiêu chí: H1–H3 có khoảng tin cậy bootstrap theo
+  khối). Tiếp: P3.
 
 **Tạp chí** (SJR 2025, đều Q1; giá lấy từ danh sách APC của Elsevier ngày 5/10/2026):
 - **Chính: NHESS** (SJR 1,418). Hợp nhất với câu chuyện độ phủ và nguồn nhãn của bản đồ nguy cơ. Phí 1.800 €, được miễn nếu Việt Nam thuộc Research4Life; phải xác nhận trên research4life.org trước khi nộp.
