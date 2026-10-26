@@ -161,7 +161,8 @@ P4 post hoc analyses (26/10, owner approved; plan `docs/p4_posthoc_plan.md` comm
   (88%), kappa 0.75; Q2 protection: no one saw any (100%, kappa undefined). Rater 2 clear loss: E_om 8/11 (r1 9/11), E_rep 10/11
   (10/11), N_rep 3/23 (6/23), N_non 0/12 (1/12) -> more conservative; the 'reports catch short failures' hint rests mainly on
   rater 1. Clicks: 20/20, 15 pairs on the same capture date, between raters RMSE 3 m, median 1 m; Landsat vs r1 20 m, vs r2 21 m.
-  Rater 2 took 8 min for 60 units (median 7 s per answer) vs rater 1 39 min (15 s).
+  Rater 2 took 8 min for 60 units (median 7 s per answer) vs rater 1 39 min (15 s). Owner confirmed 26/10: Nam worked entirely on his own,
+  blind to groups and to rater 1's answers; the owner only explained how to use the tool (rater 1 had to learn the task first).
 - Title changed 26/10 (owner): "Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as
   hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta".
 
