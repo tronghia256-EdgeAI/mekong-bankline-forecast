@@ -15,3 +15,6 @@ __pycache__/
 # Papers and PDFs (copyrighted, never pushed)
 papers/
 *.pdf
+
+# Data release build (src/release.py)
+release/

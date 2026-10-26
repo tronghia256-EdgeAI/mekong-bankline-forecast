@@ -45,7 +45,7 @@ Coverage (P1, main-channel checks of 22/10; `src/stitch.py`, `results/p1/tile_ch
   Tháp): 6,465 bank points, 390 units of 2 km, 172 of 5 km, 125 communes (`data/processed/units.csv`).
 
 Accuracy vs hand clicks (Esri Wayback, final stitched product; `figures/fig04_validation`):
-- Tiền n = 55, RMSE 33 m; Hậu wide n = 12, RMSE 19 m; Hậu narrow n = 13, RMSE 30 m; river-island channels n = 11, RMSE 14 m, median |err| 9 m (`results/p1/islands_accuracy.md`; one of 12 clicks fell on a channel narrower than the canal filter and is now a non-detection). Typical bias −10 to −20 m (Landsat bank riverward; wet-season imagery). Stable single-edge banks ~10–15 m.
+- Tiền n = 55, RMSE 33 m; Hậu wide n = 12, RMSE 19 m; Hậu narrow n = 13, RMSE 30 m; river-island channels n = 9, RMSE 15 m, median |err| 12 m after deviation 5 (before: n = 11, RMSE 14 m, median 9 m, `results/p1/islands_accuracy.md`; one of 12 clicks fell on a channel narrower than the canal filter and is a non-detection; two more, T7112O and T11092O, lie on ring banks dropped as duplicates of a neighbouring island's ring). Typical bias −10 to −20 m (Landsat bank riverward; wet-season imagery). Stable single-edge banks ~10–15 m.
 - Known outlier types: multi-edge banks (vegetated strip/bar in front of ponds, ~100 m), transient riverward objects (T417L 2021–22), sharp bends and canal mouths (narrow reach).
 
 P2 results (26/10, protocol-v1 + deviations 1-5; numbers AFTER the island-duplicate correction, deviation 5; `results/p2/forecast.md`, `results/p2/h3.md`):
