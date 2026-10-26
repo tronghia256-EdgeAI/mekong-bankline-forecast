@@ -141,5 +141,13 @@ listed per row in the inventory.
 Nguyen T.G. et al. 2025 (Physical Geography): pooled 95 reported/field + 272 Landsat points without comparing sources,
 no spatial/temporal validation, no intervals. Steger et al. 2017, 2021 (inventory bias in landslide susceptibility);
 Rüther et al. 2026 (NHESS, biased inventories inflate metrics); Villaça et al. 2024/2025 (newspaper inventories);
-Langhorst & Pavelsky 2023 (global bank migration). Novelty statements are search-scope statements
+Langhorst & Pavelsky 2023 (global bank migration). Contribution 3 (owner, 26/10) = open annual bankline series 2000–2024
+(with per-channel accuracy) + public inventory + blind-verified list of unreported eroding reaches; no "first" claim (Binh
+et al. 2020, Remote Sens. 12:3298, Landsat bank detection in the VMD; Dente et al. 2026, EGU26-16468, global yearly river
+positions). Citation names checked on Crossref 26/10: 10.1088/2515-7620/ae8ab8 = "Acceleration and spatial reorganization
+of bank erosion under prolonged sediment starvation: multi-decadal evidence from the Vam Nao channel", Environ. Res.
+Commun. 8(8), 085011 (2026); metadata lists the authors as Huy, Nguyen Dam Quoc; Van, Le Thi Thuy; Kim, Tran Thi
+(Vietnamese order inverted; the first author is Nguyễn Đàm Quốc Huy). Cite as the DOI metadata gives it ("Huy et al., 2026"),
+because reference checks match Crossref; the companion paper 10.1016/j.hydrch.2026.100046 (Hydrology Research) uses the same
+"Huy, Nguyen Dam Quoc" form. Novelty statements are search-scope statements
 (`results/p0/g1_scholar_check.md`).
