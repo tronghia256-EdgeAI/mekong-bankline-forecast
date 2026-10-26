@@ -1,9 +1,9 @@
-# Analysis protocol (draft, not frozen)
+# Analysis protocol (frozen, protocol-v1)
 
 Paper 3: coverage-verified forecasts of riverbank retreat (H1, H2) and label-source sensitivity of
 erosion-susceptibility evaluation (H3), Tiền and Hậu rivers, Vietnamese Mekong Delta.
 
-Status: DRAFT 2026-10-26. Frozen = committed and tagged `protocol-v1` after the owner's approval. Everything
+Status: FROZEN 2026-10-26. The owner approved every proposal in section 0 (D1-D8) as written; git tag `protocol-v1`. Everything
 below is decided before any forecast is scored on the test period and before reported and satellite labels are
 compared. Changes after the freeze go to a dated "Deviations" section at the end, with reasons; the frozen
 version stays in git.

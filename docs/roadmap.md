@@ -89,7 +89,7 @@ Còn ghi nhận: 3 điểm nhiều mép ở Sa Đéc (T303R, T326L, T410R) lệc
 - Sai số bờ cù lao (12 điểm bấm, `results/p1/islands_accuracy.md`): RMSE 14 m, trung vị |sai số| 9 m (n = 11; 1 điểm rơi vào lạch hẹp hơn bộ lọc kênh, nay là "không đo được"). Sửa chung: bờ nằm ngay tại điểm đầu transect = đo hỏng (bỏ 1.448 dòng rải rác ở sông Hậu hẹp, 5% dòng cù lao; P0 và sông Tiền không đổi).
 - Chủ đề tài duyệt xong inventory 26/10 (151 dòng): giữ 141, trùng 8, loại 1, chưa chắc 1; 124 dòng dùng được cho nhãn (`data/hotspots/inventory.csv`, `src/inventory_final.py`).
 - 26/10: nhãn vệ tinh (`src/sat_labels.py`; nhãn chính: 75% điểm bờ của đơn vị lùi ≥ 20 m 2014→2023, 47/352 đơn vị) và biến phụ trợ (`src/covariates.py`) xong. Sửa hai lỗi: nhãn I/O của bờ cù lao bị đảo ở cả 11 cù lao (số đo không đổi); chế độ sông hẹp loại bờ xa hơn 1 km. Bản nháp protocol: `docs/protocol.md`.
-- Còn lại: chủ đề tài duyệt protocol, gắn tag `protocol-v1`.
+- 26/10: chủ đề tài duyệt toàn bộ đề xuất D1–D8; protocol khóa (tag `protocol-v1`). **P1 xong.** Tiếp: P2.
 
 **Tạp chí** (SJR 2025, đều Q1; giá lấy từ danh sách APC của Elsevier ngày 5/10/2026):
 - **Chính: NHESS** (SJR 1,418). Hợp nhất với câu chuyện độ phủ và nguồn nhãn của bản đồ nguy cơ. Phí 1.800 €, được miễn nếu Việt Nam thuộc Research4Life; phải xác nhận trên research4life.org trước khi nộp.
