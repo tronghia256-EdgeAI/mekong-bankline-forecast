@@ -35,7 +35,7 @@ input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
 .dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid #222; flex: none; margin: 0 7px 0 7px; }
 .note { color: var(--ink2); font-size: 12px; margin: 4px 0 0 24px; }
 .hide { display: none !important; }
-.base label { margin-right: 12px; cursor: pointer; }
+.base label { margin-right: 10px; cursor: pointer; white-space: nowrap; display: inline-block; }
 #toggle { display: none; }
 dialog { max-width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; color: var(--ink); }
 dialog::backdrop { background: rgba(0,0,0,.35); }
@@ -77,7 +77,8 @@ dialog ul { padding-left: 18px; margin: 4px 0; }
 
   <section class="base">
     <div style="font-weight:600;margin-bottom:3px" data-t="basemap"></div>
-    <label><input type="radio" name="base" value="esri" checked> <span data-t="imagery"></span></label>
+    <label><input type="radio" name="base" value="gray" checked> <span data-t="gray"></span></label>
+    <label><input type="radio" name="base" value="esri"> <span data-t="imagery"></span></label>
     <label><input type="radio" name="base" value="osm"> <span data-t="osm"></span></label>
   </section>
 
@@ -89,7 +90,7 @@ dialog ul { padding-left: 18px; margin: 4px 0; }
         <select id="ref" aria-label="Reference year"></select></div>
     </div>
     <div class="legend">
-      <div class="it"><span class="ln" style="border-color:#f0e442"></span><span data-t="selyear"></span></div>
+      <div class="it"><span class="ln" id="sel-sw" style="border-color:#1a1a1a"></span><span data-t="selyear"></span></div>
       <div class="it"><span class="ln" style="border-color:#56b4e9;border-top-style:dashed"></span><span data-t="refyear"></span></div>
     </div>
     <p class="note" id="zoomhint" style="color:#8a4b00" data-t="zoomhint"></p>
@@ -136,7 +137,7 @@ const T = {
  en: {
   title: 'Tiền–Hậu riverbank atlas', about: 'About', hide: 'Hide', show: 'Layers', close: 'Close',
   subtitle: 'Annual dry-season riverbanks 2000–2024 from Landsat, measured retreat, reported erosion and a 2027 forecast with 90% intervals. Vietnamese Mekong Delta (An Giang, Đồng Tháp). Click a line for details.',
-  basemap: 'Base map', imagery: 'Satellite imagery', osm: 'OpenStreetMap',
+  basemap: 'Base map', gray: 'Light map', imagery: 'Satellite imagery', osm: 'OpenStreetMap',
   banks: 'Annual banklines', ref: 'Compare with', selyear: 'Selected year', refyear: 'Reference year',
   zoomhint: 'Zoom in to see the banklines.',
   banks_note: 'No composite in 2012; 2010, 2011 and 2013 cover only part of the banks (clouds, Landsat 7 stripes).',
@@ -165,7 +166,7 @@ const T = {
  vi: {
   title: 'Bản đồ bờ sông Tiền – sông Hậu', about: 'Giới thiệu', hide: 'Ẩn', show: 'Lớp bản đồ', close: 'Đóng',
   subtitle: 'Đường bờ mùa khô hằng năm 2000–2024 từ ảnh Landsat, mức lùi bờ đo được, sạt lở đã được báo cáo và dự báo 2027 với khoảng tin cậy 90%. Đồng bằng sông Cửu Long (An Giang, Đồng Tháp). Bấm vào một đường để xem chi tiết.',
-  basemap: 'Bản đồ nền', imagery: 'Ảnh vệ tinh', osm: 'OpenStreetMap',
+  basemap: 'Bản đồ nền', gray: 'Bản đồ sáng', imagery: 'Ảnh vệ tinh', osm: 'OpenStreetMap',
   banks: 'Đường bờ hằng năm', ref: 'So sánh với', selyear: 'Năm đang chọn', refyear: 'Năm đối chiếu',
   zoomhint: 'Phóng to bản đồ để xem đường bờ.',
   banks_note: 'Không có ảnh tổng hợp năm 2012; các năm 2010, 2011 và 2013 chỉ phủ một phần bờ (mây, sọc ảnh Landsat 7).',
@@ -200,11 +201,13 @@ const fmt = (v, d = 0) => v == null ? '–' : (v > 0 ? '+' : '') + v.toFixed(d).
 const num = v => lang === 'vi' ? String(v).replace('.', ',') : String(v);
 
 // ---------- colour scales (ColorBrewer RdBu, colour-blind safe; red = retreat) ----------
-const UNIT_BINS = [[-Infinity, -20, '#2166ac'], [-20, -5, '#67a9cf'], [-5, 5, '#f7f7f7'], [5, 20, '#fddbc7'],
-                   [20, 50, '#ef8a62'], [50, 100, '#b2182b'], [100, Infinity, '#67001f']];
-const TREND_BINS = [[-Infinity, -5, '#2166ac'], [-5, -1, '#67a9cf'], [-1, 1, '#f7f7f7'], [1, 5, '#ef8a62'],
+// the 'no change' class is a quiet mid grey so measured change stands out; no data is a pale grey
+const UNIT_BINS = [[-Infinity, -20, '#2166ac'], [-20, -5, '#67a9cf'], [-5, 5, '#8c8c8c'], [5, 20, '#f4a582'],
+                   [20, 50, '#d6604d'], [50, 100, '#b2182b'], [100, Infinity, '#67001f']];
+const TREND_BINS = [[-Infinity, -5, '#2166ac'], [-5, -1, '#67a9cf'], [-1, 1, '#8c8c8c'], [1, 5, '#d6604d'],
                     [5, 10, '#b2182b'], [10, Infinity, '#67001f']];
-const NODATA = '#9e9e9e';
+const NODATA = '#e0e0e0';
+const unitW = () => { const z = map.getZoom(); return z <= 9 ? 3 : z <= 10 ? 4 : z <= 12 ? 5 : 7; };
 const colour = (bins, v) => v == null ? NODATA : bins.find(b => v >= b[0] && v < b[1])[2];
 function binLabel(b, unit) {
   if (b[0] === -Infinity) return `< ${num(b[1])} ${unit}`;
@@ -215,21 +218,29 @@ function binLabel(b, unit) {
 // ---------- map ----------
 const map = L.map('map', {preferCanvas: true, zoomControl: true}).setView([10.6, 105.4], 9);
 const bases = {
+  gray: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, maxNativeZoom: 16, attribution: 'Tiles © Esri — Esri, HERE, Garmin, © OpenStreetMap contributors, and the GIS User Community'}),
   esri: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19, attribution: 'Imagery © Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'}),
   osm: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'})
 };
-bases.esri.addTo(map);
+bases.gray.addTo(map);
 map.attributionControl.addAttribution('Banks © authors, CC BY 4.0 (Landsat: USGS)');
+let baseName = 'gray';
 document.querySelectorAll('input[name=base]').forEach(r => r.addEventListener('change', () => {
   Object.values(bases).forEach(b => map.removeLayer(b)); bases[r.value].addTo(map).bringToBack();
+  baseName = r.value; restyleUnits();
+  document.getElementById('sel-sw').style.borderColor = baseName === 'esri' ? '#f0e442' : '#1a1a1a';
+  ['sel', 'ref'].forEach(k => { if (layers[k]) layers[k].key = 'stale'; });   // redraw banks in the new colour
+  if (META) drawBanks();
 }));
+map.createPane('halo'); map.getPane('halo').style.zIndex = 405;
 map.createPane('units'); map.getPane('units').style.zIndex = 410;
 map.createPane('banks'); map.getPane('banks').style.zIndex = 430;
 map.createPane('fc'); map.getPane('fc').style.zIndex = 440;
 map.createPane('top'); map.getPane('top').style.zIndex = 450;
-const rUnits = L.canvas({pane: 'units', tolerance: 6}), rBanks = L.canvas({pane: 'banks'}),
+const rHalo = L.canvas({pane: 'halo', tolerance: 6}), rUnits = L.canvas({pane: 'units', tolerance: 6}), rBanks = L.canvas({pane: 'banks'}),
       rFc = L.canvas({pane: 'fc', tolerance: 6}), rTop = L.canvas({pane: 'top', tolerance: 4});
 
 const loadingEl = document.getElementById('loading');
@@ -301,8 +312,9 @@ async function drawBanksNow() {
   document.getElementById('zoomhint').classList.toggle('hide', map.getZoom() >= BANK_ZOOM);
   const y = META.years[+yearEl.value], r = +refEl.value;
   document.getElementById('year-lab').textContent = y;
-  const want = on ? [['ref', refOn.checked ? r : null, {color: '#56b4e9', weight: 2.5, dashArray: '6 5'}],
-                     ['sel', y, {color: '#f0e442', weight: 2.5}]] : [['ref', null], ['sel', null]];
+  const selC = baseName === 'esri' ? '#f0e442' : '#1a1a1a';
+  const want = on ? [['ref', refOn.checked ? r : null, {color: '#56b4e9', weight: 1.8, dashArray: '6 5'}],
+                     ['sel', y, {color: selC, weight: 1.8}]] : [['ref', null], ['sel', null]];
   for (const [k, yr, st] of want) {
     const key = yr == null ? null : `${yr}`;
     if (layers[k]?.key === key) continue;
@@ -314,21 +326,33 @@ async function drawBanksNow() {
   layers.ref?.lyr && layers.sel?.lyr && layers.sel.lyr.bringToFront();
 }
 
+let unitParts = null;
+function restyleUnits() {   // line widths follow the zoom; the casing only helps on the dark imagery
+  if (!unitParts) return;
+  const w = unitW(), z = map.getZoom();
+  unitParts.casing.setStyle({weight: w + 2, opacity: baseName === 'esri' ? .85 : 0});
+  unitParts.fill.setStyle(f => ({color: colour(UNIT_BINS, f.properties.r), weight: w}));
+  unitParts.halo.setStyle({weight: w + 8});
+  unitParts.dots.forEach(d => d.setStyle({opacity: z < 12 ? 1 : 0, fillOpacity: z < 12 ? 1 : 0}));
+}
 function buildUnits() {
-  const casing = L.geoJSON(UNITS, {renderer: rUnits, interactive: false, style: {color: '#222', weight: 8, opacity: .9, lineCap: 'round'}});
-  const fill = L.geoJSON(UNITS, {renderer: rUnits, style: f => ({color: colour(UNIT_BINS, f.properties.r), weight: 5, opacity: 1, lineCap: 'round'}),
+  const casing = L.geoJSON(UNITS, {renderer: rUnits, interactive: false, style: {color: '#fff', weight: 5, opacity: 0, lineCap: 'round', lineJoin: 'round'}});
+  const fill = L.geoJSON(UNITS, {renderer: rUnits, style: f => ({color: colour(UNIT_BINS, f.properties.r), weight: 3, opacity: 1, lineCap: 'round', lineJoin: 'round'}),
     onEachFeature: (f, l) => l.bindPopup(() => unitPopup(f.properties), popOpt)});
   layers.units = L.layerGroup([casing, fill]);
   const ur = {type: 'FeatureCollection', features: UNITS.features.filter(f => f.properties.unrep)};
-  const halo = L.geoJSON(ur, {renderer: rUnits, style: {color: '#cc79a7', weight: 16, opacity: .75, lineCap: 'round'},
+  const halo = L.geoJSON(ur, {renderer: rHalo, style: {color: '#cc79a7', weight: 11, opacity: .45, lineCap: 'round', lineJoin: 'round'},
     onEachFeature: (f, l) => l.bindPopup(() => unitPopup(f.properties), popOpt)});
   const dots = ur.features.map(f => {
     const c = f.geometry.coordinates[0], m = c[Math.floor(c.length / 2)];
-    return L.circleMarker([m[1], m[0]], {renderer: rTop, radius: 7, color: '#000', weight: 1.5, fillColor: '#cc79a7', fillOpacity: 1})
+    return L.circleMarker([m[1], m[0]], {renderer: rTop, radius: 4.5, color: '#fff', weight: 1.5, fillColor: '#cc79a7', fillOpacity: 1})
       .bindPopup(() => unitPopup(f.properties), popOpt);
   });
   layers.unrep = L.layerGroup([halo, ...dots]);
+  unitParts = {casing, fill, halo, dots};
+  restyleUnits();
 }
+map.on('zoomend', restyleUnits);
 function buildFc() {   // casing first: a layer group adds its layers in creation (id) order, so later = drawn on top
   const cas = L.geoJSON(FC, {renderer: rFc, interactive: false, style: {color: '#111', weight: 4.5, opacity: .8}});
   const fill = L.geoJSON(FC, {renderer: rFc, style: f => f.properties.k === 'bank'

@@ -122,8 +122,14 @@ def main():
     sc = b[b.in_scope & b.commune.notna()].drop_duplicates(['unit_2km', 'commune', 'district'])
     communes = sc.groupby('unit_2km')[['commune', 'district', 'province']].apply(lambda g: [f'{c} ({d}, {p})' for c, d, p in
                                                        zip(g.commune, g.district, g.province)]).to_dict()
+    # join each unit to the first bank point of the next unit on the same bank, so adjacent units draw as one line
+    med = med.sort_values(['channel', 'side', 'transect']).reset_index(drop=True)
+    nxt = med.groupby(['channel', 'side']).shift(-1)
+    join = (nxt.unit.notna() & (nxt.unit != med.unit) & (nxt.transect == med.transect + 1)
+            & (np.hypot(nxt.x - med.x, nxt.y - med.y) <= GAP_M))
+    tail = nxt[join].assign(channel=med.channel[join], side=med.side[join], unit=med.unit[join])
     feats = []
-    for un, g in med[med.unit.isin(units.index)].sort_values(KEY).groupby('unit'):
+    for un, g in pd.concat([med, tail]).loc[lambda d: d.unit.isin(units.index)].sort_values(KEY).groupby('unit'):
         segs = segments(g)
         if not segs:
             continue
