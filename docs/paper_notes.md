@@ -163,6 +163,12 @@ P4 post hoc analyses (26/10, owner approved; plan `docs/p4_posthoc_plan.md` comm
   rater 1. Clicks: 20/20, 15 pairs on the same capture date, between raters RMSE 3 m, median 1 m; Landsat vs r1 20 m, vs r2 21 m.
   Rater 2 took 8 min for 60 units (median 7 s per answer) vs rater 1 39 min (15 s). Owner confirmed 26/10: Nam worked entirely on his own,
   blind to groups and to rater 1's answers; the owner only explained how to use the tool (rater 1 had to learn the task first).
+- Review group B done 26/10: 7 references added after Crossref verification (freihardt2023, shampa2025, constantine2014,
+  schwenk2017, brunier2014, jordan2019, vasilopoulos2021; no peer-reviewed CEGIS verification paper exists, CEGIS left out);
+  fig07 shows h = 3 and h = 5 (ACI dropped, = split); figure units m yr^-1; label window '2013–15 to 2022–24' in figs 5, 8, 10;
+  fig06 town labels clear of the curve; 30 m/yr rule removed 27 of 6033 window changes (0.4%) in 14 units, 7 labelled anyway
+  (results/p4/review_checks.md); search paragraph corrected: the 104 queries are OpenAlex (84) + arXiv (20), not Crossref,
+  plus Google Scholar (results/p0/g1_scholar_check.md).
 - Title changed 26/10 (owner): "Coverage-verified forecasts of riverbank retreat and the limits of public erosion reports as
   hazard labels: Tien and Hau rivers, Vietnamese Mekong Delta".
 

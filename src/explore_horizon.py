@@ -422,7 +422,7 @@ def figure():
         ax.plot(x, d.med_abs, mk, color=col, ms=3, alpha=.45, mew=0)
         ax.plot(d.n_dates.median(), d.med_abs.median(), mk, color=col, ms=5.5, mec=INK, mew=.6, label=s)
     ax.set_xlabel('Dates used, 2000–2024')
-    ax.set_ylabel('Median |rate error| (m/yr)')
+    ax.set_ylabel('Median |rate error| (m yr$^{-1}$)')
     ax.set_ylim(0, None)
     ax.set_xticks([4, 6, 8, 10, 12])
     ax.legend(loc='upper center', bbox_to_anchor=(.5, -.22), ncol=3, handletextpad=.1, columnspacing=.6, labelspacing=.25)

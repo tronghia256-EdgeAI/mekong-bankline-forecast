@@ -440,7 +440,7 @@ def figure(c2):
                 axes[2, j].axvline(km, color=INK2, lw=.5, ls=':')
                 axes[2, j].text(km, .98, name, transform=axes[2, j].get_xaxis_transform(), rotation=90, fontsize=7,
                                 ha='right', va='top', color=INK2)
-        axes[2, j].set_ylim(0, m.built_1km.max() * 2.5)   # headroom: town names sit above the data, not on it
+        axes[2, j].set_ylim(0, m.built_1km.max() * 3.6)   # headroom: town names sit above the data, not on it
         axes[0, j].set_title(f'({"ab"[j]}) {"Tien" if river == "tien" else "Hau"} River, main channel', loc='left',
                              pad=3, fontweight='bold')
         axes[2, j].set_xlabel('Distance downstream of the border (km)')

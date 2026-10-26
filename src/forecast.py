@@ -545,12 +545,12 @@ def report(res, runtime):
 
 # ---------- figure ----------
 
-FIG_M = [('gauss', INK2, 'o'), ('split', BLUE, 's'), ('cqr', AQUA, 'D'), ('mondrian', ORANGE, '^'), ('aci', YELLOW, 'v')]
+FIG_M = [('gauss', INK2, 'o'), ('split', BLUE, 's'), ('cqr', AQUA, 'D'), ('mondrian', ORANGE, '^')]   # ACI = split (dev. 4a)
 
 
 def figure():
-    """(a) test coverage by method and group, h = 3; (b) mean width vs pooled coverage, h = 3 and 5; (c) coverage by
-    target year, h = 3. GBT point model (CQR: GBT quantiles)."""
+    """(a) test coverage by method and group, (b) mean width vs pooled coverage, (c) coverage by target year; h = 3
+    filled markers, h = 5 open markers. GBT point model (CQR: GBT quantiles); ACI is left out (identical to split)."""
     d3 = pd.read_csv('data/processed/forecast_h3_mean.csv').query('split == "test"')
     d5 = pd.read_csv('data/processed/forecast_h5_mean.csv').query('split == "test"')
     fig, axs = plt.subplots(1, 3, figsize=(COL2, COL2 * .4), gridspec_kw=dict(width_ratios=[1.35, 1, 1], wspace=.42))
@@ -560,16 +560,16 @@ def figure():
         ax.axhline(90, color=INK2, lw=.6)
     ax = axs[0]
     for j, (k, col, mk) in enumerate(FIG_M):
-        m = 'gbt'
-        for i, c in enumerate(cats):
-            d = d3 if c == 'All' else d3[d3.group == c]
-            est, (lo, hi) = interval_metrics(d, m, k)['coverage']
-            x = i + (j - 2) * .14
-            ax.errorbar(x, est, [[est - lo], [hi - est]], fmt=mk, ms=4, color=col, mec='white', mew=.4, lw=.8,
-                        label=LABEL[k] if i == 0 else None)
+        for dh, off, fill in ((d3, -.05, col), (d5, .05, 'white')):
+            for i, c in enumerate(cats):
+                d = dh if c == 'All' else dh[dh.group == c]
+                est, (lo, hi) = interval_metrics(d, 'gbt', k)['coverage']
+                x = i + (j - 1.5) * .19 + off
+                ax.errorbar(x, est, [[est - lo], [hi - est]], fmt=mk, ms=3.5, color=col, mfc=fill, mec=col, mew=.8,
+                            lw=.7, label=LABEL[k] if i == 0 and dh is d3 else None)
     ax.set_xticks(range(len(cats)), ['All', 'Tiền\nmain', 'Hậu\nwide', 'Hậu\nnarrow', 'Islands'])
     ax.set_ylabel('Test coverage (%)')
-    ax.set_title('(a) By group, h = 3 yr', loc='left', pad=3, fontweight='bold')
+    ax.set_title('(a) By group', loc='left', pad=3, fontweight='bold')
     chart_axes(ax)
     ax = axs[1]
     for k, col, mk in FIG_M:
@@ -578,9 +578,6 @@ def figure():
             ax.plot(est['width'][0], est['coverage'][0], mk, ms=5, mfc=fill, mec=col, mew=1)
     ax.axhspan(87, 93, color=GRID, alpha=.6, lw=0)
     ax.axhline(90, color=INK2, lw=.6)
-    ax.plot([], [], 'o', mfc=INK2, mec=INK2, ms=4, label='h = 3 yr')
-    ax.plot([], [], 'o', mfc='white', mec=INK2, ms=4, label='h = 5 yr')
-    ax.legend(loc='lower right', handletextpad=.2)
     ax.set_xscale('log')
     ax.set_xticks([30, 100, 300], ['30', '100', '300'])
     ax.set_xlabel('Mean interval width (m)')
@@ -589,18 +586,22 @@ def figure():
     chart_axes(ax)
     ax = axs[2]
     for k, col, mk in FIG_M:
-        yrs = sorted(d3.target_year.unique())
-        v = [interval_metrics(d3[d3.target_year == y], 'gbt', k)['coverage'][0] for y in yrs]
-        ax.plot(yrs, v, '-', marker=mk, ms=4, color=col, mec='white', mew=.4, lw=1)
+        for dh, ls, fill in ((d3, '-', col), (d5, '--', 'white')):
+            yrs = sorted(dh.target_year.unique())
+            v = [interval_metrics(dh[dh.target_year == y], 'gbt', k)['coverage'][0] for y in yrs]
+            ax.plot(yrs, v, ls, marker=mk, ms=3.5, color=col, mfc=fill, mec=col, mew=.8, lw=.9)
     ax.set_xlabel('Target year')
     ax.set_ylabel('Test coverage (%)')
-    ax.set_title('(c) By target year, h = 3 yr', loc='left', pad=3, fontweight='bold')
+    ax.set_title('(c) By target year', loc='left', pad=3, fontweight='bold')
     chart_axes(ax)
     lo = min(a.get_ylim()[0] for a in axs)
     for a in axs:
         a.set_ylim(lo, 100)
     hd, lb = axs[0].get_legend_handles_labels()
-    fig.legend(hd, lb, loc='upper center', ncol=5, bbox_to_anchor=(.5, -.02), handletextpad=.2, columnspacing=1.2)
+    hd += [plt.Line2D([], [], ls='-', marker='o', color=INK2, ms=3.5), plt.Line2D([], [], ls='--', marker='o', color=INK2,
+                                                                                mfc='white', ms=3.5)]
+    lb += ['h = 3 yr', 'h = 5 yr']
+    fig.legend(hd, lb, loc='upper center', ncol=6, bbox_to_anchor=(.5, -.02), handletextpad=.2, columnspacing=1.2)
     save(fig, 'fig07_coverage')
 
 

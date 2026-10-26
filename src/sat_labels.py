@@ -173,7 +173,7 @@ def figure(s, prim_m=20):
                 va='bottom', fontsize=7, color=INK)
         ax.set_xlim(-10, 150)
         ax.set_ylim(-30, 170)
-        ax.set_ylabel('Retreat 2014→2023,\nunit p75 (m)')
+        ax.set_ylabel('Retreat 2013–15 to 2022–24,\nunit p75 (m)')
         chart_axes(ax)
         ax.set_title(f'({"ab"[k]}) {"Tien" if river == "tien" else "Hau"} River, 2 km units', loc='left', pad=3,
                      fontweight='bold')

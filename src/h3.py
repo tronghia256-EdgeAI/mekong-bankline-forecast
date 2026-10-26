@@ -450,7 +450,7 @@ def figure(m, d2):
     rho = spearmanr(d2.built_1km, d2.win_p75)[0]
     ax.text(.98, .6, f'Spearman ρ = {rho:+.2f}', transform=ax.transAxes, ha='right', va='top', fontsize=7)
     ax.set_xlabel('Built-up share 0–1 km (%)')
-    ax.set_ylabel('Retreat 2014→2023, unit p75 (m)')
+    ax.set_ylabel('Retreat 2013–15 to 2022–24, unit p75 (m)')
     chart_axes(ax)
     ax.legend(loc='upper right', handletextpad=.1, fontsize=7, markerscale=1.6)   # empty corner: built-up banks barely move
     ax.set_title('(c) Physical check', loc='left', pad=3, fontweight='bold')

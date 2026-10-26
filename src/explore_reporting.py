@@ -364,7 +364,7 @@ def figure(d, S, K):
     ax.invert_yaxis()
     ax.set_xlim(0, 1)
     ax.set_xticks([0, .25, .5, .75, 1], ['0', '25', '50', '75', '100%'])
-    ax.set_xlabel('Share of units, retreat 2014→2023')
+    ax.set_xlabel('Share of units, retreat 2013–15 to 2022–24')
     ax.spines[['top', 'right']].set_visible(False)
     ax.tick_params(axis='y', length=0)
     ax.legend(['accretion', 'no measurable change', 'retreat < label', 'eroding (label)'], ncol=4, loc='lower left',
@@ -380,7 +380,7 @@ def figure(d, S, K):
     ax.axvspan(-.5, .5, color=GRID, alpha=.5, lw=0)
     ax.set_xticks(KS, [f'{k:+d}' if k else 'Y' for k in KS])
     ax.set_xlabel('Year relative to reported year Y')
-    ax.set_ylabel('Events per unit-year\n(p90 ≥ 15 m/yr)')
+    ax.set_ylabel('Events per unit-year\n(p90 ≥ 15 m yr$^{-1}$)')
     ax.set_ylim(0, .33)
     chart_axes(ax)
     ax.legend(loc='upper left', fontsize=7, handletextpad=.2, borderaxespad=.1, labelspacing=.25)

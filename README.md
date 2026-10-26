@@ -68,9 +68,9 @@ Hau by distance from the border.*
 
 ![Coverage](figures/fig07_coverage.png)
 
-*Coverage of 90 % prediction intervals on the 2019–2024 test period. (a) By method and channel type, h = 3 years, with
-the 90 ± 3 % band; (b) pooled coverage against mean width, h = 3 and 5; (c) by test target year, h = 3. Bars: 95 %
-block-bootstrap intervals over 10 km blocks.*
+*Coverage of 90 % prediction intervals on the 2019–2024 test period, h = 3 years (filled markers, solid lines) and
+h = 5 years (open markers, dashed lines), with the 90 ± 3 % band. (a) By method and channel type; (b) pooled coverage
+against mean width; (c) by test target year. Bars: 95 % block-bootstrap intervals over 10 km blocks.*
 
 ![Horizon](figures/fig09_horizon.png)
 

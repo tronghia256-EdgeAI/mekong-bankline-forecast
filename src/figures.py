@@ -245,7 +245,7 @@ def method():
         b.plot(sp.year, sp.dist_m - d0, 'o', ms=4, mfc='white', mec=BLUE, mew=.8,
                label='Reverting jump (excluded)')
     yy = np.array([2000, 2024])
-    b.plot(yy, icpt + slope * yy - d0, color=INK, lw=1, label=f'Theil–Sen {slope:.1f} m/yr (95% CI {lo:.1f}–{hi:.1f})')
+    b.plot(yy, icpt + slope * yy - d0, color=INK, lw=1, label=f'Theil–Sen {slope:.1f} m yr$^{-1}$ (95% CI {lo:.1f}–{hi:.1f})')
     b.set_xlabel('Year')
     b.set_ylabel('Bank retreat since 2000 (m)')
     chart_axes(b)
@@ -339,7 +339,7 @@ def change():
         pa.axhline(0, color=INK2, lw=.6)
         pa.set_xlim(-10, 150)
         pa.set_ylim(-15, 22)
-        pa.set_ylabel('Rate (m/yr)')
+        pa.set_ylabel('Rate (m yr$^{-1}$)')
         chart_axes(pa)
         pa.set_title(f'({"bc"[k]}) {"Tien" if river == "tien" else "Hau"} River', loc='left', pad=3, fontweight='bold')
         pa.text(1, 1.01, '+ erosion, − accretion', transform=pa.transAxes, ha='right', va='bottom', fontsize=7,
@@ -358,7 +358,7 @@ def change():
     scalebar(ax, 105.02, 10.0, 20)
     ax.set_title('(a)', loc='left', pad=3, fontweight='bold')
     cb = fig.colorbar(sc, ax=ax, orientation='horizontal', fraction=.04, pad=.07, extend='both')
-    cb.set_label('Bank change 2000–2024 (m/yr, + erosion)')
+    cb.set_label('Bank change 2000–2024 (m yr$^{-1}$, + erosion)')
     cb.outline.set_linewidth(.4)
     ax.scatter([], [], s=6, c='#9a9994', label='Step or non-linear change')
     ax.legend(loc='upper right', markerscale=1.5, handletextpad=.1)

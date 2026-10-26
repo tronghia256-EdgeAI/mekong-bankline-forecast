@@ -79,3 +79,7 @@ Linear series among the 6123 transect sides with a test row: 87% (Hau narrow 95%
 - Sa Dec-Cao Lanh (P0; used to choose the bank rule): n = 41, RMSE 34 m, median |error| 21 m.
 - My Thuan and new Tien reaches (not used for any choice): n = 14, RMSE 29 m, median |error| 8 m.
 - All: n = 55, RMSE 33 m, median |error| 14 m.
+
+## Satellite label: changes left out by the 30 m/yr rule
+
+- 27 of 6033 window changes (0.4%) in 14 units; 7 of these units carry the primary satellite label anyway, 3 have too few points for a label.
