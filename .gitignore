@@ -23,3 +23,6 @@ release/
 paper/*.zip
 paper/main_flat.tex
 paper/submission/
+
+# Manuscript sources (kept locally, not published in the repository)
+paper/
