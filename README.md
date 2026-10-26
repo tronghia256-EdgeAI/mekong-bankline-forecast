@@ -173,8 +173,7 @@ against the results files.
   WebGIS (via Open Development Mekong) and Open Development Vietnam landslide points, 2015–2024. Every row within the
   study scope was checked against its source.
 - **Data release:** annual bank positions and banklines, trends, unit labels and covariates, the reviewed inventory, the
-  unreported eroding reaches and the accuracy clicks. They are archived on Zenodo, doi:[10.5281/zenodo.23665677](https://doi.org/10.5281/zenodo.23665677)
-  (reserved; the link works once the record is published). `python src/release.py` builds the release locally; its documentation is
+  unreported eroding reaches and the accuracy clicks. They are archived on Zenodo, doi:[10.5281/zenodo.23665677](https://doi.org/10.5281/zenodo.23665677) (v1.0). `python src/release.py` builds the release locally; its documentation is
   [docs/release_README.md](docs/release_README.md).
 
 Measured accuracy against hand-clicked banks on Esri World Imagery Wayback (RMSE): 33 m on the Tien main channel, 19 m on
