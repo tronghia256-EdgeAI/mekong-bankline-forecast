@@ -20,7 +20,8 @@ CVD-safe categorical slots (blue, orange, aqua), diverging blue (accretion) - gr
 
 Supplement candidates: `results/p0/sadec_caolanh_sensor_check.png` (sensor pairs, repeatability, window),
 `results/p1/tiles.png` (tiles and coarse centerlines), per-tile quick-looks in `results/p1/tiles/` (not committed).
-Planned: H1/H2 coverage figures (P2), H3 label-source figure (P2), inventory map (P1/P3).
+Planned: inventory map (P3); interactive web atlas (P3, owner's request 26/10): annual banks with a year slider, retreat
+rates, satellite labels, inventory points with sources, forecasts with intervals; static site linked from Data availability.
 
 ## Key numbers
 
