@@ -124,4 +124,11 @@ thresholds or units after seeing the H3 comparison.
 
 ## Deviations
 
-(none yet)
+1. 2026-10-26, before any model was fitted or any result seen. Section 2 "Inclusion: >= 15 valid years before
+   the origin" is infeasible: the series start in 2000 and training targets end in 2015, so no origin <= 2012 (h = 3)
+   or <= 2010 (h = 5) can have 15 years before it and the training set would be empty. Replaced by: a transect-side is
+   included if it has >= 15 valid years over 2000-2024 (as for the trends), and a forecast origin t is used for it if
+   it has >= 8 valid years in 2000..t (so the first origins are about 2007). Everything else in section 2 is unchanged.
+   Clarifications of the same section (not changes): model inputs use only years <= t; the 3-yr centred mean enters
+   only the target (the true change being predicted), and where a centred window is incomplete (e.g. 2024) the mean of
+   the available years (>= 2) is used.
