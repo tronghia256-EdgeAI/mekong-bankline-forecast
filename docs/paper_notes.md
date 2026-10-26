@@ -18,6 +18,8 @@ CVD-safe categorical slots (blue, orange, aqua), diverging blue (accretion) - gr
 | fig06_covariates | Along-river profiles of bank curvature, channel width (2000–2014) and built-up share 0–1 km landward (2020), Tiền and Hậu, with towns | Physical and exposure covariates of the 2 km units. | data/processed/covariates_2km.csv (`src/covariates.py`) |
 | fig07_coverage | (a) Test coverage (90% intervals) by method and channel group, h = 3 yr, with the 90 ± 3 pp band; (b) pooled coverage vs mean interval width, h = 3 and 5; (c) coverage by test target year | Coverage of 90% prediction intervals for bank retreat on the 2019–2024 test period. Split, Mondrian and adaptive conformal intervals hold the nominal level (92%); Gaussian intervals over-cover with intervals 5× wider; CQR under-covers at h = 3. Bars: 95% block-bootstrap CI (10 km blocks). | data/processed/forecast_*.csv (`src/forecast.py`) |
 | fig08_label_source | (a) AUC of a physical susceptibility model trained on each label source and scored against both (leave-one-block-out); (b) AUC gap by built-up tercile; (c) satellite window retreat vs built-up share | Label-source sensitivity at 2 km reach units. (a) AUC with block-bootstrap CI; (b) ΔAUC = AUC(reported) − AUC(satellite) by built-up tercile; (c) retreat 2014→2023 vs built-up share 0–1 km (dashed: 20 m label threshold). | data/processed/h3_*.csv (`src/h3.py`) |
+| fig09_horizon (EXPLORATORY) | (a) Share of bank points whose change exceeds the 95% noise floor, h = 1–10 yr, by channel group; (b) rolling-origin test MAE of persistence, Theil–Sen (10 yr, all years), GBT and noise only, by horizon; (c) median rate error of thinned series vs annual rates by number of dates | Exploratory: forecast horizon and sampling interval. (a) Detectability with block-bootstrap bands (dashed: σ = 4.7 m); (b) targets 2019–2024, origins t = target − h, bars 95% block-bootstrap CI; (c) small markers: random date draws. GBT gain at h = 1–2 reflects known origin noise in the centred target, not bank movement. | data/processed/explore_horizon_*.csv (`src/explore_horizon.py`) |
+| fig10_reporting (EXPLORATORY) | (a) Measured change class of reported units by source type and of never-reported units; (b) measured event rate from Y−3 to Y+3 around the reported year, reported vs never-reported units; (c, d) along-river strips: any report, event rows, satellite-eroding units (reported / never reported) | Exploratory: what the public reports capture. (a) Retreat 2014→2023 of 2 km units (no measurable change = within ±9.3 m); (b) unit-year events (p90 ≥ 15 m/yr; 2012, 2024 excluded) with block-bootstrap CI, controls matched on calendar year and channel group. | data/processed/explore_reporting_*.csv (`src/explore_reporting.py`) |
 | fig04_validation | (a) Landsat minus hand-clicked bank by river / channel type; (b) eroded area vs SIWRR (Phong et al., 2022) | Accuracy. (a) Difference between the Landsat bank and the bank clicked on Esri World Imagery Wayback (negative = Landsat bank riverward); bars = median. (b) Left-bank eroded area at Bình Hàng Trung per period, this study vs Phong et al. (2022). | accuracy_review.csv per reach, tile_check.project |
 
 Supplement candidates: `results/p0/sadec_caolanh_sensor_check.png` (sensor pairs, repeatability, window),
@@ -50,6 +52,30 @@ P2 results (26/10, protocol-v1 + deviations 1-4; `results/p2/forecast.md`, `resu
 - H1 NOT supported: test MAE persistence 9.9 m [7.7, 12.3] vs GBT 10.0 [8.1, 12.2] (diff +0.10 [−0.32, 0.62]) at h = 3; at h = 5 persistence 14.6 [10.9, 18.8] vs GBT 16.1 (GBT worse, +1.42 [0.19, 3.09]); GP 20.3 / 24.8; rate extrapolation (LRR 10 yr) 12.8 / 21.4 — worse than persistence. Median |retreat| 3.7 m: most banks move less than the noise over 3 yr.
 - H2 SUPPORTED for split / Mondrian / ACI conformal: pooled test coverage 92.4 / 92.7 / 92.4% at h = 3 (width ~50 m), 91.9 / 91.8 / 91.9% at h = 5 (~93 m); Gaussian 99.5% with widths 251 / 323 m (fails, over-covers: heavy-tailed targets); CQR 70.8% at h = 3 (fails; feature shift from incomplete 2010-2013 composites), 92.8% at h = 5. By group h = 3 split: Tiền 90.8, Hậu wide 97.9, Hậu narrow 96.3, islands 89.7%. At h = 5 Hậu wide under-covers (85.8 split, 83.8 Mondrian). Spatial leave-block-out h = 3: split 91.7%. ACI identical to split by construction (deviation 4a).
 - H3 NOT supported (logistic, 2 km): AUC trained on reported 0.44 (reported) / 0.54 (satellite); trained on satellite 0.49 / 0.71; ΔAUC −0.09 [−0.33, 0.28] and −0.22 [−0.44, 0.06]; tercile trend CIs include 0; all sensitivities fail. Exploratory: reported labels cover 75% of units (265/352) vs satellite 13% (47), agreement kappa −0.01 [−0.05, 0.03]; satellite retreat falls with built-up (Spearman −0.22 [−0.33, −0.09]; prevalence 24 / 13 / 3% by tercile).
+
+EXPLORATORY after P2 (26/10, planned in `docs/exploratory_plan.md` before running; no verdicts; CIs 10 km block bootstrap):
+- A, horizon (`results/p2/explore_horizon.md`): change above the noise floor (σ 3.6 m) for 27% [23, 32] of bank points at 1 yr,
+  38% [33, 43] at 3 yr, 49% [43, 54] at 5 yr, 63% [58, 68] at 10 yr (h3: Tiền 40, Hậu wide 21, Hậu narrow 30, islands 44%;
+  σ 4.7 m about 7 points lower). Rolling-origin MAE persistence / Theil–Sen 10 yr / Theil–Sen all / GBT: h1 3.9 / 4.4 / 5.3 / 3.0;
+  h3 9.9 / 12.8 / 15.0 / 9.7; h5 14.6 / 21.4 / 25.2 / 15.6; h7 18.0 / 30.1 / 34.7 / 18.7 m. GBT − persistence: h1 −0.90 [−1.14,
+  −0.69], h2 −0.37 [−0.72, −0.05] (artefact: the centred target contains known origin noise), h3 −0.23 [−0.70, 0.30], h5 +0.97
+  [0.10, 1.85]. Theil–Sen never beats persistence (excess +0.5 m at h1 to +12 m at h7). Split conformal 91–95% coverage at every
+  horizon; persistence widths 17 / 56 / 111 / 140 m at h1 / 3 / 5 / 7. Thinned series vs annual: median |rate error| 0.10 (every
+  2nd yr), 0.15 (3rd), 0.25 (5th), 0.35 m/yr (4 dates; 0.26–0.66 across draws); sign changes 3.5–11.7%, 'significant' status
+  changes 6.7–16.7% of transect-sides; Theil–Sen MAE h3 15.0 → 16–23 m. Strict rolling design reproduces the confirmatory H1
+  (GBT 9.7 vs 10.0 m): the fixed split's training/calibration targets overlap the earliest test origins (state in the paper).
+- B, reporting (`results/p2/explore_reporting.md`): omission 13 of 47 satellite-eroding units never reported, 28% [12, 44]
+  (all on the Tiền; ~11 distinct banks, see island duplicates below); 28/47 never as a dated event, 60% [47, 74]. Commission:
+  203/265 reported units (77% [70, 84]) below the 9.3 m floor (warned lists 79%, news 70%, emergency decisions 88%, ODM 2018 81%;
+  Hậu main 89, Tiền main 74, islands 66%; built-up terciles 67 / 80 / 83%); never-reported units 79%. Timing (events ≥ 15 m/yr):
+  reported units have fewer events than never-reported in the 3 yr after the report, ratio 0.34 [0.09, 0.97] (0.43 [0.14, 1.47]
+  matched on channel group), and also before (0.34 [0.14, 0.82]); warned-list units vs not warned, next 1–3 yr 0.45 [0.04, 0.96]
+  → warnings do not precede measured retreat. Largest unreported eroding units: Bình Hàng Tây / Bình Thạnh (Tiền L km 101–103,
+  156 / 137 m), Long Khánh A islands (134–148 m), An Hòa / An Bình A (111 m).
+- Found by B (26/10, verified by the controller): ring banks of adjacent islands are partly measured twice. 253 in-scope bank
+  points lie within 30 m of a point on another island channel (pairs isl_tien_02/03: 65, 06/07: 58, 05/06: 11, 05/07: 7,
+  03/04: 3); `reach_units.py` dropped ring banks near main banks but not near other rings. Affects n in H1/H2 (~2%), 15 units of
+  2 km with ≥ 50% shared points (8 satellite-positive). Fix pending owner decision.
 
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
