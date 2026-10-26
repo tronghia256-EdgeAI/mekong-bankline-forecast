@@ -20,6 +20,7 @@ CVD-safe categorical slots (blue, orange, aqua), diverging blue (accretion) - gr
 | fig08_label_source | (a) AUC of a physical susceptibility model trained on each label source and scored against both (leave-one-block-out); (b) AUC gap by built-up tercile; (c) satellite window retreat vs built-up share | Label-source sensitivity at 2 km reach units. (a) AUC with block-bootstrap CI; (b) ΔAUC = AUC(reported) − AUC(satellite) by built-up tercile; (c) retreat 2014→2023 vs built-up share 0–1 km (dashed: 20 m label threshold). | data/processed/h3_*.csv (`src/h3.py`) |
 | fig09_horizon (EXPLORATORY) | (a) Share of bank points whose change exceeds the 95% noise floor, h = 1–10 yr, by channel group; (b) rolling-origin test MAE of persistence, Theil–Sen (10 yr, all years), GBT and noise only, by horizon; (c) median rate error of thinned series vs annual rates by number of dates | Exploratory: forecast horizon and sampling interval. (a) Detectability with block-bootstrap bands (dashed: σ = 4.7 m); (b) targets 2019–2024, origins t = target − h, bars 95% block-bootstrap CI; (c) small markers: random date draws. GBT gain at h = 1–2 reflects known origin noise in the centred target, not bank movement. | data/processed/explore_horizon_*.csv (`src/explore_horizon.py`) |
 | fig10_reporting (EXPLORATORY) | (a) Measured change class of reported units by source type and of never-reported units; (b) measured event rate from Y−3 to Y+3 around the reported year, reported vs never-reported units; (c, d) along-river strips: any report, event rows, satellite-eroding units (reported / never reported) | Exploratory: what the public reports capture. (a) Retreat 2014→2023 of 2 km units (no measurable change = within ±9.3 m); (b) unit-year events (p90 ≥ 15 m/yr; 2012, 2024 excluded) with block-bootstrap CI, controls matched on calendar year and channel group. | data/processed/explore_reporting_*.csv (`src/explore_reporting.py`) |
+| fig12_isprs2010 | Dumbbell chart: predicted (Lam Dao Nguyen et al., 2010) vs measured median bank retreat since 2009 at seven site-sides, 2015 and 2020, with the site-matching range | Verification of the 2010 deterministic forecast. Predicted change from the paper's appendices (weighted linear DSAS extrapolation, base 2009); measured from annual Landsat banks (3-yr means). Grey: range from two ways of matching the paper's sites to our transects. | `src/p3_isprs2010.py`, results/p3/isprs2010.md |
 | fig04_validation | (a) Landsat minus hand-clicked bank by river / channel type; (b) eroded area vs SIWRR (Phong et al., 2022) | Accuracy. (a) Difference between the Landsat bank and the bank clicked on Esri World Imagery Wayback (negative = Landsat bank riverward); bars = median. (b) Left-bank eroded area at Bình Hàng Trung per period, this study vs Phong et al. (2022). | accuracy_review.csv per reach, tile_check.project |
 
 Supplement candidates: `results/p0/sadec_caolanh_sensor_check.png` (sensor pairs, repeatability, window),
@@ -93,6 +94,14 @@ numbers after the island-duplicate correction, deviation 5):
   - Bank protection: none seen in any of the 60 units (0/60, [0, 6]), so visible embankments do not explain commission in
     this sample; the sample drew no town-centre reach with a known revetment (Tân Châu, Long Xuyên centre, Hồng Ngự town),
     and piles under vegetation are not visible from above.
+
+P3 R3 (26/10, `results/p3/isprs2010.md`; illustration): the 2010 forecast (Lam Dao Nguyen et al., ISPRS Archives XXXVIII-8,
+appendices 1-7, every transect, base 2009) missed in both directions. Median retreat by 2020, measured vs predicted: Sa Đéc
+(An Hiệp, Tiền R) 100 vs 252 m (retreat stopped after ~2015; 2001-09 rate 20 m/yr matched the paper); Thường Phước upstream
+-1 vs 118; Thường Phước downstream 11 m vs 103 m of predicted accretion (the strong 2001-09 accretion did not continue);
+Long Khánh A 198 vs 118 and 178 vs 71; "Châu Ma" east (isl_tien_04, matched by map grid only) 171 vs 142; west undecided (59 or
+130 vs 123). Three headline numbers in the paper's text contradict its own appendices (appendix values used). Matches are
+candidate stretches (paper maps 70-460 m off our composites); descriptive, seven site-sides.
 
 Reported inventory (P1 draft, 25/10, `data/hotspots/inventory_draft.csv`): 187 rows = 158 G3 + 23 new
 (quote-verified 23/23) + 6 ODV rows; 144 on measured banks, 4 on unmeasured banks, 3 unmatched, 36 out of scope.
