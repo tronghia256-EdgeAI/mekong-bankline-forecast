@@ -147,7 +147,7 @@ manuscript: linear-only split h = 3 is 96.0% [94.6, 97.1] and raw-target split 9
 swapped as 90.0 / 96.0). H3 2×2: P(sat+ | rep+) 31/260 = 11.9%, P(sat+ | rep−) 12/83 = 14.5%, odds ratio 0.80. Under independence
 omission would be 24% (observed 28%) and the below-floor share 78% (observed 77% reported, 81% unreported).
 
-P4 post hoc analyses (26/10, owner approved; plan `docs/p4_posthoc_plan.md` committed before running, af64f18;
+P4 post hoc analyses (26/10, owner approved; plan `docs/p4_posthoc_plan.md` committed before running, 5df3b1f;
 `python src/p4_posthoc.py run` -> `results/p4/posthoc.md`; GBT refit reproduces stored forecasts to 0.0005 m):
 - PH1a Mondrian by past rate (classes < 2, 2–5, 5–10, ≥ 10 m/yr): h = 3 pooled 92.8% [90.7, 94.6], width 44.1 m (split 49.4),
   Winkler 91.9 (103.5); rate > 10 m/yr 86.1% [83.2, 88.7] (split 60.2); criterion missed only because < 1 m/yr is 95.2%.
