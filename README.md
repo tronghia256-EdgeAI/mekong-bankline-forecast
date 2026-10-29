@@ -12,7 +12,7 @@ was scored, whether learned models beat persistence (H1), whether conformal pred
 coverage on held-out years (H2), and whether erosion-susceptibility scores depend on the label source, public reports or
 satellite-measured retreat (H3).
 
-**Interactive atlas:** <https://tronghia256-edgeai.github.io/mekong-bankline-forecast/atlas/> (annual banklines 2000–2024,
+**Interactive atlas:** <https://trongnghia-le.github.io/mekong-bankline-forecast/atlas/> (annual banklines 2000–2024,
 erosion labels, reported sites, unreported eroding reaches and a 2027 forecast band).
 
 **Status:** analyses complete; manuscript under internal revision. The numbers below may change with the revision and
